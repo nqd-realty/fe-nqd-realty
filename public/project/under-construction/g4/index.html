@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greeneye Nursery — Walkthrough</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#0a0f14;font-family:'DM Sans',sans-serif}
+
+/* Blocker / Start screen */
+#blocker{position:fixed;inset:0;background:rgba(6,10,16,0.92);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(8px)}
+#blocker.hidden{display:none}
+.start-panel{text-align:center;max-width:520px;padding:40px}
+.start-panel h1{font-size:28px;font-weight:700;color:#3fb950;margin-bottom:4px;letter-spacing:-0.5px}
+.start-panel h2{font-size:14px;font-weight:400;color:#8b949e;margin-bottom:28px}
+.start-btn{background:#3fb950;color:#0a0f14;border:none;padding:14px 44px;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;border-radius:8px;cursor:pointer;transition:all 0.2s}
+.start-btn:hover{background:#56d364;transform:translateY(-1px)}
+.controls{margin-top:24px;text-align:left;background:rgba(255,255,255,0.04);border-radius:10px;padding:16px 20px;border:1px solid rgba(255,255,255,0.06)}
+.controls h3{font-size:11px;font-weight:700;color:#d4a030;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.ctrl-row{display:flex;gap:16px;margin-bottom:5px;align-items:center}
+.ctrl-row span{font-size:12px;color:#8b949e}
+.ctrl-row kbd{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,255,255,0.08);padding:2px 7px;border-radius:4px;color:#e0e0e0;border:1px solid rgba(255,255,255,0.1)}
+
+/* HUD */
+#hud{position:fixed;top:14px;left:14px;z-index:50;pointer-events:none}
+#hud .room-tag{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;color:#3fb950;margin-bottom:3px;text-shadow:0 1px 4px rgba(0,0,0,0.6)}
+#hud .loc{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.45)}
+
+/* Crosshair */
+#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:50;pointer-events:none;width:20px;height:20px}
+#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(255,255,255,0.25)}
+#crosshair::before{width:16px;height:1.5px;left:2px;top:9.25px}
+#crosshair::after{width:1.5px;height:16px;left:9.25px;top:2px}
+
+/* Minimap */
+#minimap{position:fixed;bottom:14px;right:14px;width:170px;height:275px;z-index:50;background:rgba(10,15,20,0.82);border-radius:10px;border:1px solid rgba(255,255,255,0.07);overflow:hidden}
+#minimap canvas{width:100%;height:100%}
+
+/* Door prompt */
+#door-prompt{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;opacity:0;transition:opacity 0.25s}
+.door-prompt-inner{background:rgba(10,15,20,0.85);border:1px solid rgba(63,185,80,0.35);border-radius:8px;padding:9px 18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:#3fb950}
+.door-prompt-inner kbd{background:rgba(255,255,255,0.1);padding:2px 7px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);color:#e0e0e0;font-size:11px}
+
+/* Esc hint */
+#esc-hint{position:fixed;top:14px;right:14px;font-size:11px;color:rgba(255,255,255,0.25);z-index:50;font-family:'JetBrains Mono',monospace;pointer-events:none}
+
+/* Info panel toggle */
+#info-toggle{position:fixed;top:14px;right:120px;z-index:50;background:rgba(10,15,20,0.7);border:1px solid rgba(255,255,255,0.1);color:#8b949e;font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;pointer-events:auto}
+#info-toggle:hover{color:#3fb950;border-color:#3fb950}
+</style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<div id="blocker">
+  <div class="start-panel">
+    <h1>Greeneye Nursery</h1>
+    <h2>NW Corner — Immersive Walkthrough</h2>
+    <button class="start-btn" id="startBtn">Enter Building</button>
+    <div class="controls">
+      <h3>Controls</h3>
+      <div class="ctrl-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>Move</span></div>
+      <div class="ctrl-row"><kbd>Mouse</kbd> <span>Look around</span></div>
+      <div class="ctrl-row"><kbd>Shift</kbd> <span>Sprint</span></div>
+      <div class="ctrl-row"><kbd>E</kbd> <span>Open / close doors</span></div>
+      <div class="ctrl-row"><kbd>1</kbd>–<kbd>9</kbd> <span>Teleport (building, gate, aerial, road...)</span></div>
+      <div class="ctrl-row"><kbd>M</kbd> <span>Toggle room dimensions</span></div>
+      <div class="ctrl-row"><kbd>Esc</kbd> <span>Release cursor</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="hud">
+  <div class="room-tag" id="roomTag">—</div>
+  <div class="loc" id="locText"></div>
+</div>
+<div id="crosshair"></div>
+<div id="esc-hint">ESC to release</div>
+<div id="door-prompt">
+  <div class="door-prompt-inner">Press <kbd>E</kbd> to <span id="door-action">open</span> <span id="door-name">door</span></div>
+</div>
+<div id="minimap"><canvas id="mapCanvas" width="170" height="275"></canvas></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

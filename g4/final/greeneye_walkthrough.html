@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greeneye Nursery — First Person Walkthrough</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#0a0f14;font-family:'DM Sans',sans-serif}
+#blocker{position:fixed;inset:0;background:rgba(6,10,16,0.92);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(8px)}
+#blocker.hidden{display:none}
+.start-panel{text-align:center;max-width:480px;padding:40px}
+.start-panel h1{font-size:28px;font-weight:700;color:#3fb950;margin-bottom:8px;letter-spacing:-0.5px}
+.start-panel h2{font-size:14px;font-weight:400;color:#8b949e;margin-bottom:32px}
+.start-btn{background:#3fb950;color:#0a0f14;border:none;padding:14px 40px;font-size:16px;font-weight:700;font-family:'DM Sans',sans-serif;border-radius:8px;cursor:pointer;transition:all 0.2s}
+.start-btn:hover{background:#56d364;transform:translateY(-1px)}
+.controls{margin-top:28px;text-align:left;background:rgba(255,255,255,0.04);border-radius:10px;padding:18px 22px;border:1px solid rgba(255,255,255,0.06)}
+.controls h3{font-size:12px;font-weight:700;color:#d4a030;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
+.ctrl-row{display:flex;gap:20px;margin-bottom:6px}
+.ctrl-row span{font-size:13px;color:#8b949e}
+.ctrl-row kbd{font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,255,255,0.08);padding:2px 8px;border-radius:4px;color:#e0e0e0;border:1px solid rgba(255,255,255,0.1)}
+#hud{position:fixed;top:16px;left:16px;z-index:50;pointer-events:none}
+#hud .loc{font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,0.5)}
+#hud .room-tag{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:#3fb950;margin-bottom:4px}
+#minimap{position:fixed;bottom:16px;right:16px;width:180px;height:285px;z-index:50;background:rgba(10,15,20,0.85);border-radius:10px;border:1px solid rgba(255,255,255,0.08);overflow:hidden}
+#minimap canvas{width:100%;height:100%}
+#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:50;pointer-events:none}
+#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(255,255,255,0.3)}
+#crosshair::before{width:16px;height:1px;left:-8px;top:0}
+#crosshair::after{width:1px;height:16px;left:0;top:-8px}
+#esc-hint{position:fixed;top:16px;right:16px;font-size:12px;color:rgba(255,255,255,0.3);z-index:50;font-family:'JetBrains Mono',monospace;pointer-events:none}
+</style>
+</head>
+<body>
+
+<div id="blocker">
+  <div class="start-panel">
+    <h1>Greeneye Nursery</h1>
+    <h2>NW Corner — First Person Walkthrough</h2>
+    <button class="start-btn" id="startBtn">Enter Building</button>
+    <div class="controls">
+      <h3>Controls</h3>
+      <div class="ctrl-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move around</span></div>
+      <div class="ctrl-row"><kbd>Mouse</kbd><span>Look around</span></div>
+      <div class="ctrl-row"><kbd>Shift</kbd><span>Move faster</span></div>
+      <div class="ctrl-row"><kbd>Space</kbd><span>Move up</span></div>
+      <div class="ctrl-row"><kbd>C</kbd><span>Move down / crouch</span></div>
+      <div class="ctrl-row"><kbd>E</kbd><span>Open / close doors (when nearby)</span></div>
+      <div class="ctrl-row"><kbd>1-5</kbd><span>Teleport to preset views</span></div>
+      <div class="ctrl-row"><kbd>Esc</kbd><span>Release mouse</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="hud">
+  <div class="room-tag" id="roomTag">—</div>
+  <div class="loc" id="locText">X: 0.0  Y: 0.0  Z: 0.0</div>
+</div>
+<div id="crosshair"></div>
+<div id="esc-hint">ESC to release cursor</div>
+<div id="door-prompt" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;opacity:0;transition:opacity 0.3s">
+  <div style="background:rgba(10,15,20,0.85);border:1px solid rgba(63,185,80,0.4);border-radius:8px;padding:10px 20px;text-align:center">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#3fb950">Press <kbd style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);color:#e0e0e0;font-size:12px">E</kbd> to <span id="door-action">open</span> <span id="door-name">door</span></span>
+  </div>
+</div>
+<div id="minimap"><canvas id="mapCanvas" width="180" height="260"></canvas></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ============================================================
+// SCENE SETUP
+// ============================================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a2030);
+scene.fog = new THREE.Fog(0x1a2030, 30, 60);
+
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(12, 5.2, 8); // Start outside, looking at the East door
+camera.rotation.order = 'YXZ';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.appendChild(renderer.domElement);
+
+// ============================================================
+// COORDINATE SYSTEM (matching Blender script)
+// X = East-West, Z = North-South (Three.js Y = height)
+// Blender Y → Three.js Z, Blender Z → Three.js Y
+// ============================================================
+// Layout: S cantilever Z=0-5, Room Z=5-14, Toilet Z=14-20, Parking Z=20-30
+
+function mat(color, opts = {}) {
+  const m = new THREE.MeshStandardMaterial({
+    color, roughness: opts.r ?? 0.5, metalness: opts.m ?? 0,
+    transparent: opts.a !== undefined, opacity: opts.a ?? 1,
+    side: opts.side ?? THREE.FrontSide
+  });
+  return m;
+}
+
+const M = {
+  wall:     mat(0xD4C9A8, {r:0.7}),
+  wallExt:  mat(0xC8E6C8, {r:0.7}),
+  floor:    mat(0x8B7D6B, {r:0.8}),
+  floorAlt: mat(0x7A6E5C, {r:0.8}),
+  pathFl:   mat(0x9E9484, {r:0.9}),
+  parkFl:   mat(0x666666, {r:0.8}),
+  shower:   mat(0x2A4A44, {r:0.4}),
+  wc:       mat(0xE8E8E8, {r:0.2}),
+  urinal:   mat(0xE0E0E0, {r:0.2}),
+  basin:    mat(0xF0F0F0, {r:0.1}),
+  counter:  mat(0x6B5B4A, {r:0.4}),
+  counterR: mat(0x8B7B5A, {r:0.4}),
+  mirror:   mat(0xAABBCC, {r:0.02, m:0.95}),
+  chrome:   mat(0xCCCCCC, {r:0.1, m:0.95}),
+  glass:    mat(0x88CCFF, {r:0.05, a:0.2, side: THREE.DoubleSide}),
+  door:     mat(0x8B6914, {r:0.4}),
+  frame:    mat(0x5A4A2A, {r:0.5}),
+  geyser:   mat(0xF0883E, {r:0.3}),
+  pipeC:    mat(0x4488CC, {r:0.3, m:0.7}),
+  pipeH:    mat(0xCC4444, {r:0.3, m:0.7}),
+  metal:    mat(0x666666, {r:0.3, m:0.8}),
+  exhaust:  mat(0x888888, {r:0.4, m:0.5}),
+  storage:  mat(0x7EA050, {r:0.5}),
+  bed:      mat(0xA080C0, {r:0.6}),
+  pillow:   mat(0xC0B0D8, {r:0.7}),
+  induct:   mat(0xE85D30, {r:0.3}),
+  fridge:   mat(0xD0D8E0, {r:0.3}),
+  louver:   mat(0x39D2C0, {r:0.4}),
+  outdoor:  mat(0xC9A84C, {r:0.5}),
+  concrete: mat(0xB0A898, {r:0.8}),
+  boundary: mat(0x6B6B6B, {r:0.8}),
+  shutter:  mat(0x8B8B8B, {r:0.3, m:0.6}),
+  sky:      mat(0x87CEEB, {r:1.0}),
+};
+
+function box(sx, sy, sz, px, py, pz, m) {
+  const g = new THREE.BoxGeometry(sx, sy, sz);
+  const o = new THREE.Mesh(g, m);
+  o.position.set(px, py, pz);
+  o.castShadow = true;
+  o.receiveShadow = true;
+  scene.add(o);
+  return o;
+}
+
+function cyl(r, h, px, py, pz, m, seg=16, axis='Y') {
+  const g = new THREE.CylinderGeometry(r, r, h, seg);
+  const o = new THREE.Mesh(g, m);
+  o.position.set(px, py, pz);
+  if (axis === 'X') o.rotation.z = Math.PI/2;
+  if (axis === 'Z') o.rotation.x = Math.PI/2;
+  scene.add(o);
+  return o;
+}
+
+const W = 0.375; // wall thickness
+
+// ============================================================
+// FLOORS
+// ============================================================
+box(5, 0.15, 15, -2.5, -0.075, 12.5, M.pathFl);   // Pathway
+box(9, 0.15, 6, 4.5, -0.075, 17, M.floor);          // Toilet
+box(9, 0.15, 9, 4.5, -0.075, 9.5, M.floorAlt);      // Room
+box(14, 0.15, 15, 2, -0.075, 27.5, M.parkFl);          // Parking
+box(9, 0.1, 5, 4.5, -0.05, 2.5, M.pathFl);           // Cantilever
+
+// ============================================================
+// WALLS
+// ============================================================
+// North boundary
+box(14, 10, W, 2, 5, 35+W/2, M.boundary);
+// East wall (room+toilet Y=5 to Y=20)
+box(W, 10, 15, 9+W/2, 5, 12.5, M.wall);
+// Dividing wall (toilet/room at Z=14)
+box(9, 10, W, 4.5, 5, 14, M.wall);
+// South wall (room at Z=5)
+box(9, 10, W, 4.5, 5, 5-W/2, M.wall);
+// Toilet W wall — N portion
+box(W, 10, 3, -W/2, 5, 18.5, M.wall);
+// Toilet W wall — above door
+box(W, 3, 2.5, -W/2, 8.5, 15.75, M.wall);
+// Toilet W wall — S sliver
+box(W, 10, 0.5, -W/2, 5, 14.25, M.wall);
+// Room W wall (full)
+box(W, 10, 9, -W/2, 5, 9.5, M.wall);
+// Parking W boundary
+box(W, 10, 15, -5-W/2, 5, 27.5, M.boundary);
+
+// ============================================================
+// ROOF / CANTILEVER
+// ============================================================
+box(9.5, 0.5, 15.5, 4.5, 10.25, 12.25, M.concrete);
+box(9.5, 0.4, 5.5, 4.5, 10.2, 2.25, M.concrete);  // cantilever
+
+// ============================================================
+// TOILET FIXTURES (Z=14 to Z=20)
+// ============================================================
+// WC
+box(0.8, 1.2, 1.3, 0.5, 0.9, 18.5, M.wc);
+box(1.3, 0.9, 1.3, 1.35, 0.45, 18.5, M.wc);
+cyl(0.45, 0.06, 1.4, 0.95, 18.5, M.wc);
+
+// Glass partition at Z=17
+box(3.5, 8, 0.05, 1.75, 4, 17, M.glass);
+box(3.5, 0.08, 0.1, 1.75, 0.04, 17, M.metal);
+box(3.5, 0.08, 0.1, 1.75, 8, 17, M.metal);
+
+// Toilet door (interactive)
+const toilDoorPivot = new THREE.Group();
+toilDoorPivot.position.set(0, 0, 14.5);
+toilDoorPivot.rotation.y = 0;
+toilDoorPivot.userData = { isOpen: false, targetAngle: 0, openAngle: 1.4, closeAngle: 0, speed: 3, label: 'Toilet Door', proximityCenter: new THREE.Vector3(0, 3, 15.5) };
+scene.add(toilDoorPivot);
+const tdMesh = box(0.15, 7, 2.5, 0.075, 3.5, 1.25, M.door);
+scene.remove(tdMesh);
+toilDoorPivot.add(tdMesh);
+
+// Urinal
+box(1.2, 1.8, 0.6, 4.2, 1.5, 14.35, M.urinal);
+box(0.8, 1.2, 0.15, 4.2, 1.4, 14.55, M.basin);
+
+// Handwash
+box(1.2, 0.12, 2.5, 8.4, 2.6, 18.75, M.counter);
+box(0.1, 2.5, 2.5, 8.95, 1.25, 18.75, M.counter);
+cyl(0.45, 0.3, 8.4, 2.55, 18.75, M.basin);
+cyl(0.03, 0.6, 8.85, 2.95, 18.75, M.chrome);
+box(0.08, 2.2, 1.8, 8.96, 4.5, 18.75, M.mirror);
+
+// Shower
+box(3, 0.1, 2.4, 7.5, 0.05, 15.2, M.shower);
+cyl(0.35, 0.05, 7.5, 8, 15.2, M.chrome);
+box(0.05, 8, 2.4, 6, 4, 15.2, M.glass);
+
+// Geyser
+box(0.5, 1.2, 0.8, 8.7, 6.5, 18.75, M.geyser);
+
+// Toilet ventilation
+box(0.15, 0.8, 0.8, 0, 7.5, 19, M.exhaust);
+box(0.15, 1.2, 1.5, 9, 7.5, 17.5, M.exhaust);
+
+// ============================================================
+// CARETAKER ROOM (Z=5 to Z=14)
+// ============================================================
+// L-Counter — N arm (6.3ft × 1ft deep, on N wall)
+box(6.3, 0.12, 1, 3.15, 2.56, 13.5, M.counterR);
+box(6.3, 2.5, 0.1, 3.15, 1.25, 13.95, M.counterR);
+// L-Counter — W arm (1.5ft × 3.4ft)
+box(1.5, 0.12, 3.4, 0.75, 2.56, 12.3, M.counterR);
+box(0.1, 2.5, 3.4, 0.05, 1.25, 12.3, M.counterR);
+
+// Kitchenette
+box(0.9, 0.08, 0.7, 0.75, 2.7, 13, M.induct);
+cyl(0.15, 0.02, 0.65, 2.75, 13, M.induct);
+// Mini fridge
+box(0.9, 1.8, 0.8, 0.75, 0.9, 12.1, M.fridge);
+
+// Storage cupboard
+box(1.4, 9.5, 5.5, 0.75, 4.75, 7.75, M.storage);
+// Shelves
+for (let i = 1; i < 5; i++) {
+  box(1.3, 0.05, 5.4, 0.75, i*2, 7.75, M.storage);
+}
+
+// Bed (6×6ft king)
+box(6, 0.8, 6, 4.7, 0.4, 8, M.bed);
+box(5.8, 0.4, 5.8, 4.7, 1, 8, M.bed);
+// Pillows (head at S = Z=5)
+box(1.2, 0.3, 0.6, 3.2, 1.35, 5.4, M.pillow);
+box(1.2, 0.3, 0.6, 4.7, 1.35, 5.4, M.pillow);
+box(1.2, 0.3, 0.6, 6.2, 1.35, 5.4, M.pillow);
+
+// Room door (NE corner, Z=11-14, hinged at Z=14, interactive)
+const roomDoorPivot = new THREE.Group();
+roomDoorPivot.position.set(9, 0, 14);
+roomDoorPivot.rotation.y = 0;
+roomDoorPivot.userData = { isOpen: false, targetAngle: 0, openAngle: -1.4, closeAngle: 0, speed: 3, label: 'Room Door', proximityCenter: new THREE.Vector3(9, 3, 12.5) };
+scene.add(roomDoorPivot);
+const rdMesh = box(0.15, 7, 3, -0.075, 3.5, -1.5, M.door);
+scene.remove(rdMesh);
+roomDoorPivot.add(rdMesh);
+
+// Interactive doors array
+const doors = [toilDoorPivot, roomDoorPivot];
+
+// Louver window (E wall, Z=5-11)
+box(0.15, 9, 6, 9, 4.5, 8, M.louver);
+for (let i = 0; i < 20; i++) {
+  box(0.12, 0.03, 5.8, 9.05, 0.5+i*0.45, 8, M.louver);
+}
+
+// High louvre (W wall)
+box(0.15, 1, 1, 0, 7.5, 13, M.exhaust);
+
+// Ceiling fan
+cyl(0.6, 0.08, 4.5, 9.5, 9.5, M.metal);
+
+// ============================================================
+// OUTDOOR COUNTER (SW cantilever)
+// ============================================================
+box(6, 0.12, 2, 3, 2.56, 3.8, M.outdoor);
+box(6, 2.5, 0.1, 3, 1.25, 4.95, M.outdoor);
+box(0.15, 2.4, 0.15, 0.2, 1.2, 3, M.metal);
+box(0.15, 2.4, 0.15, 5.8, 1.2, 3, M.metal);
+box(5.8, 0.08, 1.8, 3, 1.2, 3.8, M.outdoor);
+
+// ============================================================
+// PARKING
+// ============================================================
+box(0.15, 7, 3, -5, 3.5, 30, M.shutter);
+
+// ============================================================
+// LIGHTING
+// ============================================================
+const ambient = new THREE.AmbientLight(0x404060, 0.4);
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(0xFFF5E0, 2.5);
+sun.position.set(15, 20, 10);
+sun.castShadow = true;
+sun.shadow.mapSize.width = 2048;
+sun.shadow.mapSize.height = 2048;
+sun.shadow.camera.near = 0.5;
+sun.shadow.camera.far = 60;
+sun.shadow.camera.left = -20;
+sun.shadow.camera.right = 20;
+sun.shadow.camera.top = 20;
+sun.shadow.camera.bottom = -20;
+scene.add(sun);
+
+const toiletLight = new THREE.PointLight(0xFFEECC, 0.8, 12);
+toiletLight.position.set(4.5, 9, 17);
+scene.add(toiletLight);
+
+const roomLight = new THREE.PointLight(0xFFEECC, 0.8, 12);
+roomLight.position.set(4.5, 9, 9.5);
+scene.add(roomLight);
+
+const cantLight = new THREE.PointLight(0xFFEECC, 0.3, 10);
+cantLight.position.set(3, 5, 3);
+scene.add(cantLight);
+
+// East outdoor light (simulating sunlight through louver)
+const eastLight = new THREE.SpotLight(0xFFF0C0, 1.5, 15, Math.PI/4, 0.5);
+eastLight.position.set(12, 6, 8);
+eastLight.target.position.set(4, 2, 8);
+scene.add(eastLight);
+scene.add(eastLight.target);
+
+// ============================================================
+// POINTER LOCK CONTROLS
+// ============================================================
+const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+const keys = {};
+let isLocked = false;
+
+const blocker = document.getElementById('blocker');
+const startBtn = document.getElementById('startBtn');
+const locText = document.getElementById('locText');
+const roomTag = document.getElementById('roomTag');
+
+startBtn.addEventListener('click', () => {
+  renderer.domElement.requestPointerLock();
+});
+
+document.addEventListener('pointerlockchange', () => {
+  isLocked = document.pointerLockElement === renderer.domElement;
+  blocker.classList.toggle('hidden', isLocked);
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isLocked) return;
+  euler.setFromQuaternion(camera.quaternion);
+  euler.y -= e.movementX * 0.002;
+  euler.x -= e.movementY * 0.002;
+  euler.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, euler.x));
+  camera.quaternion.setFromEuler(euler);
+});
+
+document.addEventListener('keydown', (e) => { keys[e.code] = true; });
+document.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+// Teleport presets
+document.addEventListener('keydown', (e) => {
+  const presets = {
+    'Digit1': { pos: [12, 5.2, 12.5], label: 'Outside — East view' },
+    'Digit2': { pos: [5, 5.2, 12], label: 'Room — center' },
+    'Digit3': { pos: [4.5, 5.2, 17], label: 'Toilet — center' },
+    'Digit4': { pos: [3, 5.2, 3.5], label: 'Cantilever — outdoor counter' },
+    'Digit5': { pos: [2, 5.2, 28], label: 'Parking area' },
+  };
+  if (presets[e.code]) {
+    const p = presets[e.code].pos;
+    camera.position.set(p[0], p[1], p[2]);
+  }
+
+  // E key — toggle nearest door
+  if (e.code === 'KeyE' && isLocked) {
+    let nearestDoor = null;
+    let nearestDist = Infinity;
+    for (const door of doors) {
+      const d = camera.position.distanceTo(door.userData.proximityCenter);
+      if (d < nearestDist) {
+        nearestDist = d;
+        nearestDoor = door;
+      }
+    }
+    if (nearestDoor && nearestDist < 5) {
+      const ud = nearestDoor.userData;
+      ud.isOpen = !ud.isOpen;
+      ud.targetAngle = ud.isOpen ? ud.openAngle : ud.closeAngle;
+    }
+  }
+});
+
+const doorPrompt = document.getElementById('door-prompt');
+const doorAction = document.getElementById('door-action');
+const doorName = document.getElementById('door-name');
+
+// ============================================================
+// MINIMAP
+// ============================================================
+const mapCanvas = document.getElementById('mapCanvas');
+const mapCtx = mapCanvas.getContext('2d');
+mapCanvas.width = 180;
+mapCanvas.height = 285;
+
+function drawMinimap() {
+  const ctx = mapCtx;
+  const s = 5; // scale: 1ft = 5px
+  const ox = 30, oy = 5; // offset
+
+  ctx.clearRect(0, 0, 180, 285);
+
+  // Pathway
+  ctx.fillStyle = 'rgba(63,185,80,0.15)';
+  ctx.fillRect(ox + (-5)*s, oy + (35-20)*s, 5*s, 15*s);
+
+  // Parking
+  ctx.fillStyle = 'rgba(100,100,100,0.15)';
+  ctx.fillRect(ox + (-5)*s, oy + (35-35)*s, 14*s, 15*s);
+  ctx.strokeStyle = 'rgba(100,100,100,0.3)';
+  ctx.strokeRect(ox + (-5)*s, oy + (35-35)*s, 14*s, 15*s);
+  ctx.fillStyle = 'rgba(150,150,150,0.5)';
+  ctx.font = '8px JetBrains Mono';
+  ctx.fillText('PARKING', ox+5, oy+38);
+
+  // Toilet
+  ctx.fillStyle = 'rgba(88,166,255,0.15)';
+  ctx.fillRect(ox, oy + (35-20)*s, 9*s, 6*s);
+  ctx.strokeStyle = 'rgba(88,166,255,0.4)';
+  ctx.strokeRect(ox, oy + (35-20)*s, 9*s, 6*s);
+  ctx.fillStyle = 'rgba(88,166,255,0.6)';
+  ctx.fillText('TOILET', ox+12, oy+92);
+
+  // Room
+  ctx.fillStyle = 'rgba(212,160,48,0.15)';
+  ctx.fillRect(ox, oy + (35-14)*s, 9*s, 9*s);
+  ctx.strokeStyle = 'rgba(212,160,48,0.4)';
+  ctx.strokeRect(ox, oy + (35-14)*s, 9*s, 9*s);
+  ctx.fillStyle = 'rgba(212,160,48,0.6)';
+  ctx.fillText('ROOM', ox+14, oy+140);
+
+  // Cantilever
+  ctx.fillStyle = 'rgba(150,150,150,0.1)';
+  ctx.fillRect(ox, oy + (35-5)*s, 9*s, 5*s);
+  ctx.setLineDash([3,3]);
+  ctx.strokeStyle = 'rgba(150,150,150,0.3)';
+  ctx.strokeRect(ox, oy + (35-5)*s, 9*s, 5*s);
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(150,150,150,0.4)';
+  ctx.fillText('CANTILEVER', ox+6, oy+165);
+
+  // Player dot
+  const px = ox + camera.position.x * s;
+  const pz = oy + (35 - camera.position.z) * s;
+  ctx.beginPath();
+  ctx.arc(px, pz, 4, 0, Math.PI*2);
+  ctx.fillStyle = '#3fb950';
+  ctx.fill();
+
+  // Direction indicator
+  const dir = new THREE.Vector3(0, 0, -1);
+  dir.applyQuaternion(camera.quaternion);
+  ctx.beginPath();
+  ctx.moveTo(px, pz);
+  ctx.lineTo(px + dir.x * 12, pz - dir.z * 12);
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.lineWidth = 1;
+}
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+const clock = new THREE.Clock();
+
+function getRoomName(x, y, z) {
+  if (z >= 14 && z <= 20 && x >= 0 && x <= 9) return 'Common Toilet';
+  if (z >= 5 && z <= 14 && x >= 0 && x <= 9) return 'Caretaker Room';
+  if (z >= 0 && z <= 5 && x >= 0 && x <= 9) return 'South Cantilever';
+  if (z >= 20 && z <= 35) return 'Car Parking';
+  if (x >= -5 && x <= 0 && z >= 5 && z <= 20) return '5ft Pathway';
+  return 'Outside';
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  const speed = keys['ShiftLeft'] ? 12 : 5;
+
+  if (isLocked) {
+    velocity.x *= 0.85;
+    velocity.z *= 0.85;
+
+    direction.set(0, 0, 0);
+    if (keys['KeyW']) direction.z = -1;
+    if (keys['KeyS']) direction.z = 1;
+    if (keys['KeyA']) direction.x = -1;
+    if (keys['KeyD']) direction.x = 1;
+    direction.normalize();
+
+    const forward = new THREE.Vector3(0, 0, -1);
+    forward.applyQuaternion(camera.quaternion);
+    forward.y = 0;
+    forward.normalize();
+
+    const right = new THREE.Vector3(1, 0, 0);
+    right.applyQuaternion(camera.quaternion);
+    right.y = 0;
+    right.normalize();
+
+    velocity.addScaledVector(forward, -direction.z * speed * delta);
+    velocity.addScaledVector(right, direction.x * speed * delta);
+
+    camera.position.add(velocity);
+
+    // Vertical
+    if (keys['Space']) camera.position.y += speed * delta * 0.6;
+    if (keys['KeyC']) camera.position.y -= speed * delta * 0.6;
+
+    // Clamp height
+    camera.position.y = Math.max(1.5, Math.min(15, camera.position.y));
+  }
+
+  // Update HUD
+  const p = camera.position;
+  locText.textContent = `X: ${p.x.toFixed(1)}  Z: ${p.z.toFixed(1)}  H: ${p.y.toFixed(1)}ft`;
+  roomTag.textContent = getRoomName(p.x, p.y, p.z);
+
+  // Animate doors (smooth swing)
+  for (const door of doors) {
+    const ud = door.userData;
+    const diff = ud.targetAngle - door.rotation.y;
+    if (Math.abs(diff) > 0.01) {
+      door.rotation.y += diff * Math.min(ud.speed * delta, 0.15);
+    }
+  }
+
+  // Door proximity prompt
+  let showPrompt = false;
+  if (isLocked) {
+    for (const door of doors) {
+      const dist = camera.position.distanceTo(door.userData.proximityCenter);
+      if (dist < 5) {
+        showPrompt = true;
+        doorAction.textContent = door.userData.isOpen ? 'close' : 'open';
+        doorName.textContent = door.userData.label;
+        break;
+      }
+    }
+  }
+  doorPrompt.style.opacity = showPrompt ? '1' : '0';
+
+  drawMinimap();
+  renderer.render(scene, camera);
+}
+
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

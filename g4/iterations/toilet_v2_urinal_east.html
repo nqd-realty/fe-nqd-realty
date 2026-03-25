@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0f14;
+    color: #e6edf3;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .header { text-align: center; margin-bottom: 20px; max-width: 960px; margin-left: auto; margin-right: auto; }
+  .header h1 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, #3fb950, #58a6ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .header .sub { color: #8b949e; font-size: 11px; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+  .tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 7px 14px; border: 1px solid #21262d; border-radius: 8px; background: #0d1117; color: #8b949e; cursor: pointer; transition: all 0.2s; }
+  .tab.active { background: #161b22; color: #3fb950; border-color: #3fb950; }
+  .tab:hover { border-color: #3fb950; color: #c9d1d9; }
+
+  .panel { display: none; max-width: 960px; margin: 0 auto; }
+  .panel.active { display: block; }
+
+  .card { background: #111820; border: 1px solid #1c2430; border-radius: 14px; padding: 20px; position: relative; overflow: hidden; margin-bottom: 16px; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #3fb950, #58a6ff); }
+  .card-title { font-size: 15px; font-weight: 700; color: #f0f6fc; margin-bottom: 2px; }
+  .card-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #58a6ff; margin-bottom: 14px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #8b949e; font-family: 'JetBrains Mono', monospace; }
+  .lsw { width: 12px; height: 12px; border-radius: 2px; border: 1px solid #21262d; }
+
+  .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .note { background: #0a0f14; border: 1px solid #1c2430; border-radius: 8px; padding: 10px; font-size: 12px; color: #c9d1d9; line-height: 1.5; }
+  .note strong { color: #58a6ff; display: block; margin-bottom: 3px; font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .thinking { background: #1a1500; border: 1px solid #3d3000; border-radius: 10px; padding: 16px; margin-bottom: 16px; font-size: 13px; color: #d4c06a; line-height: 1.6; }
+  .thinking h3 { color: #f0c030; font-size: 14px; margin-bottom: 8px; }
+  .thinking .issue { color: #f47067; font-weight: 600; }
+  .thinking .fix { color: #3fb950; font-weight: 600; }
+
+  .svg-wrap { text-align: center; overflow-x: auto; }
+  .svg-wrap svg { max-width: 100%; height: auto; }
+
+  @media (max-width: 700px) { .notes-grid { grid-template-columns: 1fr; } body { padding: 10px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Greeneye Nursery — Common Toilet (Revised)</h1>
+  <div class="sub">NW Corner · 9ft (E-W) × 6ft (N-S) · Urinal collision fixed · Vastu compliant</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('problem')">Problem & Fix</button>
+  <button class="tab" onclick="show('plan')">Revised Floor Plan</button>
+  <button class="tab" onclick="show('plumbing')">Plumbing Layout</button>
+  <button class="tab" onclick="show('notes')">Specs & Notes</button>
+</div>
+
+<!-- ===================== PROBLEM ANALYSIS ===================== -->
+<div class="panel active" id="p-problem">
+  <div class="thinking">
+    <h3>The Collision Problem</h3>
+    <p>The West wall is only <strong>6ft long</strong> (N-S). Per the architect's door schedule:</p>
+    <p>• Door is <strong>south-biased</strong> — 0.5ft from South (dividing) wall, 2.5ft wide</p>
+    <p>• Door occupies the <strong>South 3ft of the West wall</strong> (from 3ft to 6ft from North)</p>
+    <p>• The <strong>North 4ft+ must stay free</strong> for the NW Vayu sub-corner (Vastu)</p>
+    <p><br/><span class="issue">Result: The door takes 3ft, Vayu zone takes 4ft → that's 7ft on a 6ft wall. They overlap by design (the door starts inside the Vayu clearance zone). There is literally ZERO remaining West wall space for a urinal.</span></p>
+    <p><br/><span class="fix">Fix: Move the urinal to the East wall, between the handwash counter (NE corner) and the shower zone (SE corner). This keeps the West wall clean for the door, preserves Vayu corner, and creates a logical flow: enter → urinal straight ahead → WC to the left.</span></p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Before vs After — West Wall Analysis</div>
+    <div class="card-sub">Why the urinal cannot be on the West wall</div>
+
+    <div class="svg-wrap">
+      <svg viewBox="0 0 820 500" width="820" height="500" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="820" height="500" fill="#0a0f14"/>
+
+        <!-- ===== LEFT: BEFORE (collision) ===== -->
+        <text x="200" y="30" fill="#f47067" font-family="DM Sans" font-size="16" font-weight="700" text-anchor="middle">BEFORE (Collision)</text>
+
+        <!-- West wall strip (vertical, 6ft = 360px) -->
+        <rect x="60" y="60" width="40" height="360" fill="#1a1015" stroke="#f47067" stroke-width="2"/>
+        <text x="80" y="50" fill="#8b949e" font-family="JetBrains Mono" font-size="10" text-anchor="middle">WEST WALL (6ft N→S)</text>
+
+        <!-- North = top -->
+        <text x="130" y="75" fill="#484f58" font-family="JetBrains Mono" font-size="9">0ft — N wall</text>
+
+        <!-- Vayu zone 0-4ft (top 240px) -->
+        <rect x="110" y="60" width="120" height="240" fill="#2d1f0e" opacity="0.3" rx="4"/>
+        <text x="170" y="130" fill="#f0883e" font-family="JetBrains Mono" font-size="10" text-anchor="middle">NW VAYU</text>
+        <text x="170" y="145" fill="#f0883e" font-family="JetBrains Mono" font-size="10" text-anchor="middle">ZONE</text>
+        <text x="170" y="160" fill="#f0883e" font-family="JetBrains Mono" font-size="10" text-anchor="middle">4ft+ FREE</text>
+        <line x1="105" y1="300" x2="235" y2="300" stroke="#f0883e" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="130" y="295" fill="#f0883e" font-family="JetBrains Mono" font-size="9">4ft mark</text>
+
+        <!-- Door zone: 3ft from South = 180 to 390 from top = 180px from y=240 -->
+        <!-- Door: y=300 to y=420-30=390, 2.5ft=150px, 0.5ft gap=30px from south -->
+        <rect x="55" y="270" width="50" height="150" fill="#1a2040" stroke="#79c0ff" stroke-width="2" rx="2"/>
+        <text x="80" y="350" fill="#79c0ff" font-family="JetBrains Mono" font-size="10" text-anchor="middle">DOOR</text>
+        <text x="80" y="365" fill="#79c0ff" font-family="JetBrains Mono" font-size="9" text-anchor="middle">2.5ft</text>
+
+        <!-- Urinal TRYING to fit between partition and door -->
+        <rect x="55" y="210" width="50" height="55" fill="#1a1530" stroke="#f47067" stroke-width="2" rx="2"/>
+        <text x="80" y="240" fill="#f47067" font-family="JetBrains Mono" font-size="10" text-anchor="middle">URINAL</text>
+
+        <!-- COLLISION X -->
+        <text x="80" y="290" fill="#f47067" font-family="DM Sans" font-size="24" font-weight="700" text-anchor="middle">✕</text>
+        <text x="250" y="280" fill="#f47067" font-family="JetBrains Mono" font-size="10">Urinal overlaps</text>
+        <text x="250" y="295" fill="#f47067" font-family="JetBrains Mono" font-size="10">into Vayu zone AND</text>
+        <text x="250" y="310" fill="#f47067" font-family="JetBrains Mono" font-size="10">collides with door</text>
+        <text x="250" y="325" fill="#f47067" font-family="JetBrains Mono" font-size="10">swing clearance</text>
+
+        <text x="130" y="425" fill="#484f58" font-family="JetBrains Mono" font-size="9">6ft — S wall (dividing)</text>
+
+        <!-- ===== RIGHT: AFTER (fixed) ===== -->
+        <text x="610" y="30" fill="#3fb950" font-family="DM Sans" font-size="16" font-weight="700" text-anchor="middle">AFTER (Fixed)</text>
+
+        <!-- West wall (clean) -->
+        <rect x="470" y="60" width="40" height="360" fill="#0d1f15" stroke="#3fb950" stroke-width="2"/>
+        <text x="490" y="50" fill="#8b949e" font-family="JetBrains Mono" font-size="10" text-anchor="middle">WEST WALL</text>
+
+        <!-- Vayu zone -->
+        <rect x="520" y="60" width="80" height="240" fill="#162a1e" opacity="0.3" rx="4"/>
+        <text x="560" y="150" fill="#3fb950" font-family="JetBrains Mono" font-size="10" text-anchor="middle">VAYU</text>
+        <text x="560" y="165" fill="#3fb950" font-family="JetBrains Mono" font-size="10" text-anchor="middle">FREE ✓</text>
+        <line x1="515" y1="300" x2="605" y2="300" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,3"/>
+
+        <!-- Door (clean placement) -->
+        <rect x="465" y="270" width="50" height="150" fill="#0d2030" stroke="#79c0ff" stroke-width="2" rx="2"/>
+        <text x="490" y="350" fill="#79c0ff" font-family="JetBrains Mono" font-size="10" text-anchor="middle">DOOR</text>
+        <text x="490" y="365" fill="#79c0ff" font-family="JetBrains Mono" font-size="9" text-anchor="middle">2.5ft ✓</text>
+
+        <!-- Urinal → moved to East wall -->
+        <rect x="680" y="160" width="80" height="55" fill="#122030" stroke="#58a6ff" stroke-width="2" rx="4"/>
+        <text x="720" y="190" fill="#58a6ff" font-family="JetBrains Mono" font-size="10" text-anchor="middle">URINAL</text>
+        <text x="720" y="205" fill="#58a6ff" font-family="JetBrains Mono" font-size="9" text-anchor="middle">→ E wall ✓</text>
+
+        <!-- Arrow showing move -->
+        <path d="M 620 190 C 650 190, 660 190, 675 190" fill="none" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrowB)"/>
+        <text x="640" y="182" fill="#58a6ff" font-family="JetBrains Mono" font-size="8">moved to</text>
+        <text x="640" y="192" fill="#58a6ff" font-family="JetBrains Mono" font-size="8">East wall</text>
+
+        <defs>
+          <marker id="arrowB" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#58a6ff"/></marker>
+        </defs>
+
+        <!-- Flow description -->
+        <text x="610" y="440" fill="#8b949e" font-family="DM Sans" font-size="12" text-anchor="middle">Enter door → Urinal straight ahead on East wall</text>
+        <text x="610" y="458" fill="#8b949e" font-family="DM Sans" font-size="12" text-anchor="middle">WC to the left (NW) → Handwash in NE corner</text>
+        <text x="610" y="476" fill="#8b949e" font-family="DM Sans" font-size="12" text-anchor="middle">Shower in SE corner → Geyser above on East wall</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== REVISED FLOOR PLAN ===================== -->
+<div class="panel" id="p-plan">
+  <div class="card">
+    <div class="card-title">Revised Floor Plan — Urinal on East Wall</div>
+    <div class="card-sub">9ft (E-W) × 6ft (N-S) · Door clear · Vayu corner free · Logical flow</div>
+
+    <div class="svg-wrap">
+      <svg viewBox="0 0 860 680" width="860" height="680" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="860" height="680" fill="#0a0f14"/>
+
+        <!-- COMPASS -->
+        <g transform="translate(790,55)">
+          <circle cx="0" cy="0" r="20" fill="none" stroke="#3fb950" stroke-width="1"/>
+          <polygon points="0,-18 -4,-7 0,-10 4,-7" fill="#3fb950"/>
+          <text x="0" y="-23" fill="#3fb950" font-family="JetBrains Mono" font-size="10" text-anchor="middle" font-weight="bold">N</text>
+          <text x="0" y="30" fill="#484f58" font-family="JetBrains Mono" font-size="8" text-anchor="middle">S</text>
+          <text x="28" y="4" fill="#484f58" font-family="JetBrains Mono" font-size="8" text-anchor="middle">E</text>
+          <text x="-28" y="4" fill="#484f58" font-family="JetBrains Mono" font-size="8" text-anchor="middle">W</text>
+        </g>
+
+        <!-- ROOM: 9ft × 6ft -->
+        <!-- Scale: 1ft = 72px → 9ft=648px, 6ft=432px -->
+        <!-- Origin: x=90, y=90 -->
+        <rect x="90" y="90" width="648" height="432" fill="#0d1820" stroke="#3fb950" stroke-width="5" rx="2"/>
+
+        <!-- Wall labels -->
+        <text x="414" y="78" fill="#484f58" font-family="JetBrains Mono" font-size="10" text-anchor="middle">NORTH — car parking wall (solid)</text>
+        <text x="414" y="544" fill="#484f58" font-family="JetBrains Mono" font-size="10" text-anchor="middle">SOUTH — solid dividing wall → caretaker room</text>
+        <text x="752" y="306" fill="#484f58" font-family="JetBrains Mono" font-size="10" text-anchor="middle" transform="rotate(90,752,306)">EAST — nursery land</text>
+        <text x="76" y="306" fill="#484f58" font-family="JetBrains Mono" font-size="10" text-anchor="middle" transform="rotate(-90,76,306)">WEST — 5ft pathway → 60ft road</text>
+
+        <!-- DIMENSIONS -->
+        <line x1="90" y1="560" x2="738" y2="560" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="90" y1="555" x2="90" y2="565" stroke="#30363d"/>
+        <line x1="738" y1="555" x2="738" y2="565" stroke="#30363d"/>
+        <text x="414" y="580" fill="#8b949e" font-family="JetBrains Mono" font-size="12" text-anchor="middle">9'-0" (2.74m) E-W</text>
+
+        <line x1="58" y1="90" x2="58" y2="522" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="53" y1="90" x2="63" y2="90" stroke="#30363d"/>
+        <line x1="53" y1="522" x2="63" y2="522" stroke="#30363d"/>
+        <text x="48" y="306" fill="#8b949e" font-family="JetBrains Mono" font-size="12" text-anchor="middle" transform="rotate(-90,48,306)">6'-0" (1.83m) N-S</text>
+
+        <!-- ======== DOOR — West wall, South-biased ======== -->
+        <!-- 0.5ft from S wall = 36px from bottom, 2.5ft wide = 180px -->
+        <!-- Door from y = 522-36-180 = 306 to y = 522-36 = 486 -->
+        <rect x="87" y="306" width="8" height="180" fill="#0a0f14" stroke="#79c0ff" stroke-width="2.5"/>
+        <!-- Door swing arc inward -->
+        <path d="M 95 486 Q 275 486, 95 306" fill="none" stroke="#79c0ff" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+        <text x="72" y="400" fill="#79c0ff" font-family="JetBrains Mono" font-size="10" text-anchor="end" transform="rotate(-90,72,400)">DOOR 2.5ft</text>
+        <!-- Door clearance note -->
+        <text x="105" y="500" fill="#79c0ff" font-family="JetBrains Mono" font-size="8">0.5ft from S wall</text>
+        <text x="105" y="295" fill="#79c0ff" font-family="JetBrains Mono" font-size="8">hinged S jamb</text>
+        <text x="105" y="305" fill="#79c0ff" font-family="JetBrains Mono" font-size="8">swings E →</text>
+
+        <!-- NW VAYU ZONE — shaded, kept FREE -->
+        <rect x="92" y="92" width="180" height="210" fill="#2d1f0e" opacity="0.12" rx="4"/>
+        <text x="182" y="190" fill="#f0883e" font-family="JetBrains Mono" font-size="11" text-anchor="middle" opacity="0.6">NW VAYU</text>
+        <text x="182" y="205" fill="#f0883e" font-family="JetBrains Mono" font-size="11" text-anchor="middle" opacity="0.6">4ft+ free ✓</text>
+
+        <!-- ======== 1. WC — NW area, faces East ======== -->
+        <!-- Position: ~2ft from W wall, ~0.5ft from N wall -->
+        <!-- WC cistern against N wall at x=234 (2ft from W), y=100 -->
+        <g>
+          <!-- Cistern -->
+          <rect x="234" y="100" width="108" height="38" rx="8" fill="#162a1e" stroke="#3fb950" stroke-width="2.5"/>
+          <circle cx="288" cy="115" r="6" fill="#3fb950" opacity="0.25"/>
+          <!-- Bowl -->
+          <rect x="234" y="138" width="108" height="100" rx="35" fill="#162a1e" stroke="#3fb950" stroke-width="2.5"/>
+          <ellipse cx="288" cy="186" rx="36" ry="33" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="4,4"/>
+          <!-- Faces East arrow -->
+          <line x1="325" y1="186" x2="365" y2="186" stroke="#3fb950" stroke-width="2" marker-end="url(#aG)"/>
+          <text x="373" y="190" fill="#3fb950" font-family="JetBrains Mono" font-size="9">faces E ✓</text>
+        </g>
+        <text x="288" y="262" fill="#3fb950" font-family="DM Sans" font-size="13" font-weight="700" text-anchor="middle">WC</text>
+
+        <!-- Health faucet (right of WC) -->
+        <circle cx="355" cy="160" r="8" fill="none" stroke="#f0883e" stroke-width="1.5"/>
+        <text x="355" y="163" fill="#f0883e" font-family="JetBrains Mono" font-size="7" text-anchor="middle">HF</text>
+
+        <!-- Arrow defs -->
+        <defs>
+          <marker id="aG" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3fb950"/></marker>
+          <marker id="aGray" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto"><path d="M0,0 L6,2.5 L0,5" fill="#8b949e"/></marker>
+        </defs>
+
+        <!-- ======== 2. URINAL — East wall, center (between handwash NE and shower SE) ======== -->
+        <!-- Position: on East wall, ~2ft from N wall = y=90+144=234 -->
+        <g>
+          <rect x="640" y="222" width="90" height="120" rx="28" fill="#122030" stroke="#58a6ff" stroke-width="2.5"/>
+          <rect x="658" y="245" width="55" height="72" rx="18" fill="#0a0f14" stroke="#58a6ff" stroke-width="1.5"/>
+          <!-- Flush valve (top) -->
+          <circle cx="685" cy="228" r="6" fill="#58a6ff" opacity="0.3"/>
+          <line x1="685" y1="234" x2="685" y2="245" stroke="#58a6ff" stroke-width="1.5"/>
+        </g>
+        <text x="685" y="362" fill="#58a6ff" font-family="DM Sans" font-size="13" font-weight="700" text-anchor="middle">URINAL</text>
+        <text x="685" y="377" fill="#58a6ff" font-family="JetBrains Mono" font-size="9" text-anchor="middle">on East wall</text>
+
+        <!-- ======== 3. HANDWASH COUNTER — NE corner ======== -->
+        <g>
+          <!-- Counter slab -->
+          <rect x="540" y="100" width="190" height="85" rx="4" fill="#1e1530" stroke="#bc8cff" stroke-width="2.5"/>
+          <!-- Basin -->
+          <ellipse cx="635" cy="148" rx="48" ry="26" fill="#0a0f14" stroke="#bc8cff" stroke-width="2"/>
+          <!-- Tap -->
+          <rect x="630" y="106" width="12" height="20" rx="4" fill="#bc8cff" opacity="0.35"/>
+          <!-- Mirror -->
+          <rect x="570" y="90" width="100" height="7" rx="2" fill="none" stroke="#bc8cff" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="620" y="86" fill="#bc8cff" font-family="JetBrains Mono" font-size="8" text-anchor="middle">MIRROR</text>
+        </g>
+        <text x="635" y="210" fill="#bc8cff" font-family="DM Sans" font-size="13" font-weight="700" text-anchor="middle">HANDWASH COUNTER</text>
+
+        <!-- ======== 4. SHOWER ZONE — SE corner ======== -->
+        <g>
+          <!-- Shower tray -->
+          <rect x="502" y="382" width="228" height="132" rx="4" fill="#0d1f22" stroke="#39d2c0" stroke-width="2.5" stroke-dasharray="8,5"/>
+          <!-- Rain shower head -->
+          <circle cx="616" cy="420" r="18" fill="none" stroke="#39d2c0" stroke-width="2"/>
+          <circle cx="616" cy="420" r="5" fill="#39d2c0" opacity="0.3"/>
+          <!-- Spray dots -->
+          <circle cx="604" cy="413" r="2" fill="#39d2c0" opacity="0.25"/>
+          <circle cx="628" cy="413" r="2" fill="#39d2c0" opacity="0.25"/>
+          <circle cx="616" cy="406" r="2" fill="#39d2c0" opacity="0.25"/>
+          <!-- Floor drain -->
+          <circle cx="616" cy="480" r="10" fill="none" stroke="#39d2c0" stroke-width="1.5"/>
+          <line x1="608" y1="480" x2="624" y2="480" stroke="#39d2c0" stroke-width="1"/>
+          <line x1="616" y1="472" x2="616" y2="488" stroke="#39d2c0" stroke-width="1"/>
+          <text x="616" y="504" fill="#39d2c0" font-family="JetBrains Mono" font-size="8" text-anchor="middle">FLOOR DRAIN</text>
+          <!-- Glass partition (West side) -->
+          <line x1="502" y1="382" x2="502" y2="514" stroke="#39d2c0" stroke-width="3.5" opacity="0.5"/>
+          <text x="490" y="450" fill="#39d2c0" font-family="JetBrains Mono" font-size="8" text-anchor="end" transform="rotate(-90,490,450)">GLASS PARTITION</text>
+          <!-- Handheld holder -->
+          <rect x="726" y="430" width="6" height="28" rx="2" fill="#39d2c0" opacity="0.4"/>
+          <text x="724" y="470" fill="#39d2c0" font-family="JetBrains Mono" font-size="7" text-anchor="end">hand shower</text>
+        </g>
+        <text x="616" y="530" fill="#39d2c0" font-family="DM Sans" font-size="12" font-weight="700" text-anchor="middle">SHOWER (~3.2ft × 1.8ft)</text>
+
+        <!-- ======== 5. GEYSER — East wall, between handwash and urinal ======== -->
+        <g>
+          <rect x="720" y="122" width="12" height="50" rx="4" fill="#2d1f0e" stroke="#f0883e" stroke-width="2"/>
+          <circle cx="726" cy="165" r="3" fill="#f0883e" opacity="0.6"/>
+          <!-- Pipes -->
+          <line x1="720" y1="150" x2="705" y2="150" stroke="#58a6ff" stroke-width="1.5"/>
+          <line x1="720" y1="140" x2="705" y2="140" stroke="#f47067" stroke-width="1.5"/>
+        </g>
+        <text x="726" y="112" fill="#f0883e" font-family="DM Sans" font-size="10" font-weight="700" text-anchor="middle">GEYSER</text>
+        <text x="726" y="186" fill="#f0883e" font-family="JetBrains Mono" font-size="8" text-anchor="middle">15L @6ft</text>
+
+        <!-- ======== MAIN FLOOR DRAIN (center of dry zone) ======== -->
+        <circle cx="380" cy="430" r="12" fill="none" stroke="#8b949e" stroke-width="1.5"/>
+        <line x1="372" y1="430" x2="388" y2="430" stroke="#8b949e" stroke-width="1"/>
+        <line x1="380" y1="422" x2="380" y2="438" stroke="#8b949e" stroke-width="1"/>
+        <text x="380" y="455" fill="#8b949e" font-family="JetBrains Mono" font-size="9" text-anchor="middle">FLOOR DRAIN</text>
+
+        <!-- ======== EXHAUST FAN — West wall @7ft ======== -->
+        <rect x="87" y="130" width="10" height="40" rx="2" fill="none" stroke="#8b949e" stroke-width="1.5"/>
+        <text x="72" y="155" fill="#8b949e" font-family="JetBrains Mono" font-size="8" text-anchor="end">EXHAUST</text>
+        <text x="72" y="165" fill="#8b949e" font-family="JetBrains Mono" font-size="8" text-anchor="end">@7ft</text>
+        <line x1="87" y1="150" x2="65" y2="150" stroke="#8b949e" stroke-width="1" marker-end="url(#aGray)"/>
+
+        <!-- ======== HIGH LOUVRE — East wall @7ft ======== -->
+        <rect x="733" y="260" width="10" height="45" rx="2" fill="none" stroke="#8b949e" stroke-width="1.5"/>
+        <text x="755" y="278" fill="#8b949e" font-family="JetBrains Mono" font-size="8">LOUVRE</text>
+        <text x="755" y="289" fill="#8b949e" font-family="JetBrains Mono" font-size="8">@7ft</text>
+
+        <!-- ======== DRAIN EXIT — West wall ======== -->
+        <line x1="90" y1="480" x2="60" y2="480" stroke="#f47067" stroke-width="3"/>
+        <text x="50" y="475" fill="#f47067" font-family="JetBrains Mono" font-size="8" text-anchor="end">DRAIN→</text>
+        <text x="50" y="487" fill="#f47067" font-family="JetBrains Mono" font-size="7" text-anchor="end">soak pit</text>
+
+        <!-- ======== USER FLOW ANNOTATION ======== -->
+        <g opacity="0.7">
+          <!-- Entry arrow -->
+          <path d="M 95 400 L 160 400" fill="none" stroke="#e6edf3" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#aW)"/>
+          <text x="130" y="390" fill="#e6edf3" font-family="JetBrains Mono" font-size="8" text-anchor="middle">ENTER</text>
+
+          <!-- Flow to urinal -->
+          <path d="M 180 400 C 400 400, 550 380, 635 310" fill="none" stroke="#e6edf3" stroke-width="1" stroke-dasharray="3,4"/>
+          <text x="420" y="380" fill="#e6edf3" font-family="JetBrains Mono" font-size="8" text-anchor="middle">→ urinal ahead</text>
+
+          <!-- Flow to WC -->
+          <path d="M 160 400 C 200 350, 250 300, 288 265" fill="none" stroke="#e6edf3" stroke-width="1" stroke-dasharray="3,4"/>
+          <text x="190" y="330" fill="#e6edf3" font-family="JetBrains Mono" font-size="8">← WC left</text>
+
+          <defs><marker id="aW" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="#e6edf3"/></marker></defs>
+        </g>
+
+        <!-- DRY ZONE label -->
+        <text x="370" y="310" fill="#484f58" font-family="DM Sans" font-size="15" text-anchor="middle">DRY ZONE</text>
+        <text x="370" y="328" fill="#484f58" font-family="JetBrains Mono" font-size="9" text-anchor="middle">movement corridor</text>
+      </svg>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="lsw" style="background:#3fb950"></div>WC (NW zone)</div>
+      <div class="legend-item"><div class="lsw" style="background:#58a6ff"></div>Urinal (E wall)</div>
+      <div class="legend-item"><div class="lsw" style="background:#bc8cff"></div>Handwash (NE)</div>
+      <div class="legend-item"><div class="lsw" style="background:#39d2c0"></div>Shower (SE)</div>
+      <div class="legend-item"><div class="lsw" style="background:#f0883e"></div>Geyser / Partition</div>
+      <div class="legend-item"><div class="lsw" style="background:#79c0ff"></div>Door</div>
+      <div class="legend-item"><div class="lsw" style="background:#8b949e"></div>Ventilation</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PLUMBING ===================== -->
+<div class="panel" id="p-plumbing">
+  <div class="card">
+    <div class="card-title">Revised Plumbing — Water Supply & Drainage</div>
+    <div class="card-sub">Cold main along N wall · Geyser on E wall · All drains exit West</div>
+
+    <div class="svg-wrap">
+      <svg viewBox="0 0 820 560" width="820" height="560" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="820" height="560" fill="#0a0f14"/>
+
+        <!-- Room -->
+        <rect x="80" y="70" width="630" height="410" fill="#0d1820" stroke="#1c2430" stroke-width="3" rx="2"/>
+        <text x="395" y="60" fill="#484f58" font-family="JetBrains Mono" font-size="10" text-anchor="middle">NORTH</text>
+        <text x="395" y="498" fill="#484f58" font-family="JetBrains Mono" font-size="10" text-anchor="middle">SOUTH</text>
+
+        <!-- COLD MAIN — enters West wall, runs along North wall to East -->
+        <line x1="55" y1="105" x2="80" y2="105" stroke="#58a6ff" stroke-width="3.5"/>
+        <text x="45" y="100" fill="#58a6ff" font-family="JetBrains Mono" font-size="9" text-anchor="end">COLD IN</text>
+        <text x="45" y="112" fill="#58a6ff" font-family="JetBrains Mono" font-size="8" text-anchor="end">¾" CPVC</text>
+        <line x1="80" y1="105" x2="700" y2="105" stroke="#58a6ff" stroke-width="3"/>
+
+        <!-- Branch: Cold → WC cistern -->
+        <line x1="280" y1="105" x2="280" y2="130" stroke="#58a6ff" stroke-width="2"/>
+        <circle cx="280" cy="130" r="4" fill="#58a6ff" opacity="0.5"/>
+        <text x="268" y="145" fill="#58a6ff" font-family="JetBrains Mono" font-size="8">WC</text>
+
+        <!-- Branch: Cold → Health faucet -->
+        <line x1="340" y1="105" x2="340" y2="145" stroke="#58a6ff" stroke-width="1.5"/>
+        <circle cx="340" cy="145" r="3" fill="#58a6ff" opacity="0.4"/>
+        <text x="350" y="143" fill="#58a6ff" font-family="JetBrains Mono" font-size="7">HF</text>
+
+        <!-- Branch: Cold → Handwash basin (cold tap) -->
+        <line x1="610" y1="105" x2="610" y2="150" stroke="#58a6ff" stroke-width="2"/>
+        <circle cx="610" cy="150" r="4" fill="#58a6ff" opacity="0.5"/>
+        <text x="598" y="167" fill="#58a6ff" font-family="JetBrains Mono" font-size="8" text-anchor="end">BASIN C</text>
+
+        <!-- Branch: Cold → Geyser inlet -->
+        <line x1="700" y1="105" x2="700" y2="170" stroke="#58a6ff" stroke-width="2"/>
+        <circle cx="700" cy="170" r="4" fill="#58a6ff" opacity="0.5"/>
+        <text x="712" y="168" fill="#58a6ff" font-family="JetBrains Mono" font-size="8">GEYSER IN</text>
+
+        <!-- GEYSER box -->
+        <rect x="688" y="170" width="28" height="45" rx="4" fill="#2d1f0e" stroke="#f0883e" stroke-width="2"/>
+        <text x="702" y="197" fill="#f0883e" font-family="JetBrains Mono" font-size="8" text-anchor="middle">15L</text>
+
+        <!-- Branch: Cold → Urinal flush (from main, drops down East wall) -->
+        <line x1="680" y1="105" x2="680" y2="240" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <circle cx="680" cy="240" r="4" fill="#58a6ff" opacity="0.5"/>
+        <text x="668" y="255" fill="#58a6ff" font-family="JetBrains Mono" font-size="8" text-anchor="end">URINAL</text>
+
+        <!-- Branch: Cold → Shower (cold side of mixer) -->
+        <line x1="560" y1="105" x2="560" y2="390" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <circle cx="560" cy="390" r="4" fill="#58a6ff" opacity="0.5"/>
+        <text x="548" y="405" fill="#58a6ff" font-family="JetBrains Mono" font-size="8" text-anchor="end">SHOWER C</text>
+
+        <!-- HOT LINES from geyser -->
+        <!-- Hot → Handwash -->
+        <line x1="688" y1="190" x2="640" y2="190" stroke="#f47067" stroke-width="2.5"/>
+        <line x1="640" y1="190" x2="640" y2="150" stroke="#f47067" stroke-width="2.5"/>
+        <circle cx="640" cy="150" r="4" fill="#f47067" opacity="0.5"/>
+        <text x="650" y="167" fill="#f47067" font-family="JetBrains Mono" font-size="8">BASIN H</text>
+
+        <!-- Hot → Shower -->
+        <line x1="688" y1="200" x2="590" y2="200" stroke="#f47067" stroke-width="2.5"/>
+        <line x1="590" y1="200" x2="590" y2="390" stroke="#f47067" stroke-width="2.5"/>
+        <circle cx="590" cy="390" r="4" fill="#f47067" opacity="0.5"/>
+        <text x="600" y="405" fill="#f47067" font-family="JetBrains Mono" font-size="8">SHOWER H</text>
+
+        <!-- ===== DRAINAGE ===== -->
+        <!-- WC soil (4") -->
+        <line x1="280" y1="220" x2="280" y2="445" stroke="#5c2020" stroke-width="5"/>
+        <line x1="280" y1="445" x2="80" y2="445" stroke="#5c2020" stroke-width="5"/>
+        <text x="292" y="340" fill="#5c2020" font-family="JetBrains Mono" font-size="8">4" SOIL</text>
+
+        <!-- Urinal drain (2") → joins main -->
+        <line x1="680" y1="330" x2="680" y2="445" stroke="#5c2020" stroke-width="2.5"/>
+        <line x1="680" y1="445" x2="280" y2="445" stroke="#5c2020" stroke-width="2.5" stroke-dasharray="6,4"/>
+        <text x="692" y="390" fill="#5c2020" font-family="JetBrains Mono" font-size="8">URI 2"</text>
+
+        <!-- Basin drain (2") → joins main -->
+        <line x1="620" y1="175" x2="620" y2="440" stroke="#5c2020" stroke-width="2"/>
+        <line x1="620" y1="440" x2="280" y2="445" stroke="#5c2020" stroke-width="2" stroke-dasharray="6,4"/>
+        <text x="632" y="300" fill="#5c2020" font-family="JetBrains Mono" font-size="8">BASIN 2"</text>
+
+        <!-- Shower drain (3") → floor trap → main -->
+        <line x1="590" y1="440" x2="280" y2="445" stroke="#5c2020" stroke-width="3" stroke-dasharray="6,4"/>
+        <circle cx="590" cy="440" r="6" fill="none" stroke="#5c2020" stroke-width="1.5"/>
+        <text x="596" y="455" fill="#5c2020" font-family="JetBrains Mono" font-size="8">SHOWER 3"</text>
+
+        <!-- Floor drain → main -->
+        <circle cx="380" cy="410" r="8" fill="none" stroke="#5c2020" stroke-width="1.5"/>
+        <line x1="380" y1="418" x2="280" y2="445" stroke="#5c2020" stroke-width="2" stroke-dasharray="4,4"/>
+        <text x="390" y="405" fill="#5c2020" font-family="JetBrains Mono" font-size="8">FD 3"</text>
+
+        <!-- Main drain exit West -->
+        <line x1="80" y1="445" x2="35" y2="445" stroke="#5c2020" stroke-width="6"/>
+        <rect x="20" y="436" width="18" height="18" rx="2" fill="none" stroke="#f47067" stroke-width="2"/>
+        <text x="29" y="430" fill="#f47067" font-family="JetBrains Mono" font-size="8" text-anchor="middle">IC</text>
+        <text x="29" y="468" fill="#f47067" font-family="JetBrains Mono" font-size="7" text-anchor="middle">→ SOAK PIT</text>
+
+        <!-- Pipe legend -->
+        <g transform="translate(90,520)">
+          <line x1="0" y1="0" x2="22" y2="0" stroke="#58a6ff" stroke-width="3"/>
+          <text x="28" y="4" fill="#8b949e" font-family="JetBrains Mono" font-size="9">Cold (CPVC)</text>
+          <line x1="145" y1="0" x2="167" y2="0" stroke="#f47067" stroke-width="3"/>
+          <text x="173" y="4" fill="#8b949e" font-family="JetBrains Mono" font-size="9">Hot (CPVC green)</text>
+          <line x1="310" y1="0" x2="332" y2="0" stroke="#5c2020" stroke-width="4"/>
+          <text x="338" y="4" fill="#8b949e" font-family="JetBrains Mono" font-size="9">Drain (PVC SWR)</text>
+          <rect x="475" y="-7" width="14" height="14" rx="2" fill="none" stroke="#f47067" stroke-width="1.5"/>
+          <text x="495" y="4" fill="#8b949e" font-family="JetBrains Mono" font-size="9">IC = Inspection Chamber</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== NOTES ===================== -->
+<div class="panel" id="p-notes">
+  <div class="card">
+    <div class="card-title">Revised Specifications & Notes</div>
+    <div class="card-sub">All fixtures · Plumbing · Vastu · Key changes from previous version</div>
+
+    <div class="notes-grid">
+      <div class="note">
+        <strong>Key Change: Urinal Placement</strong>
+        Moved from West wall → East wall (mid-section, between handwash NE and shower SE). The West wall has only 6ft N-S: the door takes the South 3ft, and the NW Vayu zone requires 4ft+ clearance from the North corner. No room for a urinal. On the East wall, the urinal gets its own dedicated space, has direct cold water from the main line, and creates a natural user flow: enter door → urinal straight ahead.
+      </div>
+      <div class="note">
+        <strong>WC — Western Commode</strong>
+        NW zone of toilet, cistern against North wall, user faces East (Vastu ✓). Floor-mounted with concealed cistern. Health faucet on right. 4" PVC SWR soil pipe runs along South wall, exits West. Brands: Hindware, Parryware, Cera.
+      </div>
+      <div class="note">
+        <strong>Urinal — East Wall</strong>
+        Wall-hung ceramic urinal with concealed flush valve. Position: East wall mid-section, between handwash counter (NE) and shower (SE). Cold water supply drops from main line running along N wall. 2" drain runs along floor to join main soil pipe. Privacy: naturally screened by distance from WC. Brands: Hindware Flat Back, Parryware.
+      </div>
+      <div class="note">
+        <strong>Handwash Counter — NE Corner</strong>
+        24"×18" granite/Kota stone counter. Under-mount or table-top ceramic basin. Single-lever mixer (hot from geyser + cold). Mirror on East wall above counter. Position matches original architect plan (basin in NE corner).
+      </div>
+      <div class="note">
+        <strong>Shower — SE Corner</strong>
+        ~3.2ft × 1.8ft shower zone. 8" overhead rain shower + handheld unit. Thermostatic or single-lever mixer connected to geyser. 6mm tempered glass partition on West side separates wet/dry zones. Dedicated 3" floor drain. Anti-skid tiles. Floor slope 1:40.
+      </div>
+      <div class="note">
+        <strong>Geyser — 15L, East Wall</strong>
+        Wall-mounted at ~6ft height on East wall, above urinal area. Cold inlet from N wall main line. Hot outlet branches to: handwash mixer + shower mixer. CPVC hot water pipes. 2kW ISI element. Brands: Bajaj, Racold, AO Smith. Separate 15A socket + MCB.
+      </div>
+      <div class="note">
+        <strong>Door — West Wall (unchanged)</strong>
+        South-biased: 0.5ft from S dividing wall, 2.5ft wide, occupies South 3ft of West wall. Hinged on South jamb, swings inward toward East. 4ft+ NW Vayu sub-corner kept free. Accessed via 5ft setback pathway.
+      </div>
+      <div class="note">
+        <strong>User Flow</strong>
+        Enter West door → dry movement corridor in center → urinal straight ahead (East wall) → WC to the left (NW) → handwash in NE corner → shower in SE corner. Wet zone (shower) isolated by glass partition. Dry zone maintained for all movement paths.
+      </div>
+      <div class="note">
+        <strong>Ventilation (unchanged)</strong>
+        Exhaust fan: West wall @7ft (air OUT to setback pathway). High louvre: East wall @7ft (fresh air IN from nursery). Cross-ventilation E→W across 9ft. No N/S vents (solid walls).
+      </div>
+      <div class="note">
+        <strong>Drainage (unchanged route)</strong>
+        All drains converge to 4" main soil pipe along South wall base, exits West wall. Under 5ft setback trench (1:40 gradient). Inspection chamber at W boundary. Soak pit outside. Capped stub for future municipal sewer.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('p-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

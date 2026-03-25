@@ -1,0 +1,309 @@
+═══════════════════════════════════════════════════════════════════════════════
+ARCHITECTURAL BRIEF — GREENEYE NURSERY & SUSTAINABILITY CENTRE
+NW CORNER CONSTRUCTION — CARETAKER ROOM + COMMON TOILET
+═══════════════════════════════════════════════════════════════════════════════
+
+PROJECT OVERVIEW
+────────────────
+Project Name  : Greeneye Nursery & Sustainability Centre
+Location      : Jaipur, Rajasthan, India
+Owner         : Piyush Ji
+Architect     : Diksha Singh, AK Interiors, B-76 SRG-1 Mukundpura, Bhankrota, Jaipur
+Date          : 19 March 2026
+Scope         : Phase 1 construction — NW corner temporary facility only
+
+
+PLOT DETAILS
+────────────
+Total plot size     : 105ft (N-S) x 90ft (E-W) — corner plot
+West boundary       : 60ft wide public road — 105ft frontage (main road)
+South boundary      : 200ft wide public road — 90ft frontage (secondary road)
+North boundary      : Adjacent plot (no road, no opening whatsoever)
+East boundary       : Adjacent plot (no road, no opening whatsoever)
+Plot orientation    : Corner plot — West road (60ft) + South road (200ft)
+Land use            : Plant nursery + sustainability centre (Greeneye Foundation)
+
+
+GATES & ENTRY POINTS ON WEST ROAD
+────────────────────────────────────
+Main gate           : On West road, 30ft North of the SW corner of the plot
+                      (pedestrian + light vehicle entry to nursery)
+Auto shutter        : On West road, at the very NW corner of the plot
+                      Opens directly onto 60ft West road
+                      Used exclusively for car parking entry/exit
+
+
+NW STRIP — OVERALL DIMENSIONS
+──────────────────────────────
+The NW construction strip runs along the West boundary at the North end of plot.
+
+Total N-S length    : 30ft (from North boundary going South)
+  └─ Car parking    : 15ft (North end — touching North boundary)
+  └─ Construction   : 15ft (South of parking)
+
+Total E-W width     : 14ft (from West boundary going East)
+  └─ 5ft setback    : Mandatory road setback from West boundary (NO construction)
+  └─ 9ft usable     : Actual buildable width after setback
+
+Maximum height      : 10ft (single storey only)
+
+
+SETBACK PATHWAY — KEY DESIGN FEATURE
+──────────────────────────────────────
+The 5ft setback strip (between West road boundary and buildable wall) is used
+as an OPEN WALKING PATHWAY. Not roofed or enclosed — fully open to sky.
+
+- South end  : Opens toward nursery land / South road direction (open, no gate)
+- North end  : Opens into the car parking area (open, no gate or wall)
+- Runs the full 15ft construction height (N-S)
+- Serves as the ONLY access route to the common toilet
+- No construction, no roof, no obstruction in this 5ft strip at any point
+
+
+CAR PARKING BLOCK (North portion of NW strip)
+──────────────────────────────────────────────
+Position    : North end of NW strip — flush against North boundary wall
+Dimensions  : 14ft wide (E-W) x 15ft deep (N-S)
+              Full 14ft includes the 5ft setback zone (parking use, not built)
+Entry       : Automatic roller shutter on West wall at NW corner of plot
+              Opens directly onto 60ft West road
+Use         : Vehicle parking for owner / nursery operations
+Note        : North boundary is solid (adjacent plot) — absolutely no opening
+
+
+CONSTRUCTION ZONE (South portion of NW strip)
+───────────────────────────────────────────────
+Position    : Directly South of car parking
+Dimensions  : 9ft usable width (E-W) x 15ft deep (N-S)
+              [14ft total minus 5ft setback = 9ft buildable]
+
+Divided into TWO completely independent units:
+
+┌─────────────────────────────────────────────────────────┐
+│  UNIT 1 — COMMON TOILET (North half)                    │
+│  Position : North portion (below parking)               │
+│  Size     : 9ft wide (E-W) x 6ft deep (N-S)            │
+│  Use      : Common toilet shared by all — nursery        │
+│             clients, visitors, and caretaker            │
+│  Entry    : SINGLE DOOR on West wall — South-biased     │
+│             ~4ft clearance to NW corner (Vayu free)     │
+│             Hinged on South jamb, swings toward East    │
+│             Access: via 5ft setback pathway             │
+│             (from South end OR from parking North end)  │
+│  WC       : Faces East (Vastu correct)                  │
+│  Basin    : NE corner of toilet                         │
+│  Vastu    : NW zone of structure — correct for toilet   │
+│                                                         │
+│  VENTILATION — cross ventilation system:                │
+│  ── Exhaust fan : West wall at ~7ft height              │
+│     Air exits OUT to setback pathway then open sky      │
+│  ── High louvre : East wall at ~7ft height              │
+│     Fresh air enters IN from open nursery land          │
+│  ── Fan pulls air E to W across full 9ft width          │
+│  ── No North vent (North wall = parking, enclosed)      │
+│  ── No South vent (South wall = solid dividing wall)    │
+│                                                         │
+│  DRAIN — West direct exit:                              │
+│  ── Exits West wall, runs under 5ft setback (~5ft)      │
+│  ── Inspection chamber at West boundary                 │
+│  ── Soak pit just outside West boundary (road side)     │
+│  ── Capped stub for future municipal connection          │
+├─────────────────────────────────────────────────────────┤
+│  SOLID DIVIDING WALL — NO internal connection           │
+│  No door, no window, no gap between toilet and room     │
+├─────────────────────────────────────────────────────────┤
+│  UNIT 2 — CARETAKER ROOM (South half)                  │
+│  Position : South portion                               │
+│  Size     : 9ft wide (E-W) x 9ft deep (N-S) = 81 sq ft │
+│  Use      : Caretaker living space — sleep and rest     │
+│  Entry    : SINGLE DOOR on East wall only               │
+│             Accessed from open nursery land (East side) │
+│  Vastu    : SW zone of structure — correct for caretaker│
+└─────────────────────────────────────────────────────────┘
+
+
+TOILET VENTILATION — DETAILED SPECIFICATION
+─────────────────────────────────────────────
+System        : Cross ventilation — mechanical exhaust + natural inlet
+
+EXHAUST (air OUT):
+  Wall        : West wall of toilet
+  Type        : Exhaust fan with grille cover
+  Height      : ~7ft from floor (above door height, above head level)
+  Opening     : Approx 1ft wide x 1.5ft high
+  Discharge   : Into 5ft open setback pathway → open sky at both ends
+  Vastu       : West = Varuna (water deity) — correct for waste/exhaust
+
+INLET (fresh air IN):
+  Wall        : East wall of toilet
+  Type        : Fixed high louvre window (horizontal slats, fixed angle)
+  Height      : ~7ft from floor (same height as exhaust — maximises flow)
+  Opening     : Approx 2ft wide x 1.5ft high
+  Source      : Open nursery land — consistent fresh air availability
+  Privacy     : Above head height — zero privacy concern
+  Vastu       : East = Surya (Sun) — fresh, purifying, life-giving energy
+
+Air flow path : Fresh air IN (East louvre) → across 9ft → Exhaust OUT (West fan)
+                Mechanical fan ensures active circulation even on still days
+
+
+ROOM INTERIOR LAYOUT (9ft x 9ft)
+──────────────────────────────────
+1. SLAB / UTILITY COUNTER
+   - Position  : North wall, full 7.5ft usable width, 1ft deep
+   - Material  : RCC with smooth plaster finish
+   - Height    : ~2.5ft from floor (standard counter height)
+   - Use       : Utility surface — water vessel, belongings, small items
+
+2. STORAGE UNIT
+   - Position  : West wall, floor to ceiling, 1.5ft deep
+   - Type      : Built-in shelved cupboard (3-4 shelves)
+   - Use       : Caretaker belongings + nursery tools
+   - Vastu     : Weight on West wall — correct
+
+3. BED PLACEMENT
+   - Position    : South-central portion of room
+   - Orientation : Head to South (aligns with Earth's magnetic field)
+   - East wall   : Kept clear for door access and morning light
+
+4. NE SACRED CORNER
+   - Position : North-East corner (between slab end and East wall)
+   - Use      : Small lamp or potted plant ONLY — nothing heavy
+
+5. NO COOKING FACILITY
+   - Phase 1 is rest/sleep only
+   - No cooking, no stove, no gas point in this phase
+
+
+DOOR SCHEDULE
+──────────────
+Door 1 — TOILET WEST DOOR
+  Location  : West wall of toilet — South-biased position
+  Position  : ~0.5ft jamb from South (dividing) wall
+              Door occupies South 3ft of West wall
+              4ft+ clearance to NW sub-corner (Vayu zone free)
+  Width     : ~2.5ft clear opening
+  Hinge     : South jamb — door swings inward toward East wall
+              (away from WC, away from NW corner)
+  Swing     : Inward into toilet, toward East/basin side
+  Access    : From 5ft setback pathway only
+  Users     : All users — only door to toilet
+  Reasoning : South-biased keeps NW Vayu sub-corner undisturbed
+              Aligns with primary approach from South pathway entry
+              Door swing clears away from WC and NW corner
+
+Door 2 — ROOM EAST DOOR
+  Location  : East wall of caretaker room, mid-wall position
+  Width     : ~3ft clear
+  Swing     : Inward into room
+  Access    : From open nursery land only
+  Users     : Caretaker only — only door to room
+
+
+ACCESS FLOW SUMMARY
+────────────────────
+TOILET:
+  From South road area → nursery land → pathway South end → walk North
+  → West door → Common toilet
+
+  From parking area → pathway North end → walk South
+  → same West door → same toilet
+
+ROOM:
+  Open nursery land (East) → East door → Caretaker room
+  Fully independent — solid wall, no connection to toilet
+
+
+VASTU COMPLIANCE SUMMARY
+─────────────────────────
+Overall compliance : 95%
+
+✓ Structure in NW zone — correct for temporary/service/caretaker use
+✓ East entry for room — Surya direction, best for health and prosperity
+✓ Toilet in NW of structure — Vayu energy, water exits correctly
+✓ West door for toilet — Varuna (water) direction, appropriate
+✓ Drain exits West — Varuna direction, water/waste exits correctly
+✓ Soak pit on West side — water element returns to earth via W
+✓ Door South-biased on West wall — NW Vayu sub-corner kept free
+✓ Door hinged South jamb, swings East — clear of WC and NW corner
+✓ South-biased door aligns with primary public approach from South
+✓ Exhaust fan West wall — waste air exits via Varuna direction
+✓ Fresh air louvre East wall — Surya energy enters, purifying
+✓ Cross ventilation E to W — aligns with natural energy flow
+✓ 5ft pathway open both ends — no trapped energy, free flow
+✓ Single door per unit — clean energy isolation
+✓ WC faces East — classical Vastu requirement for health
+✓ Slab on North wall of room — Mercury/Budh energy
+✓ Storage on West wall — adds weight to West (Vastu correct)
+✓ Bed head to South — Earth magnetic field alignment
+✓ South wall of room solid — Yama's wall, must remain closed
+✓ NE corner sacred — lamp or plant, nothing heavy
+✓ East of plot open — Surya energy floods nursery daily
+✓ North boundary solid — no openings (correct, adjacent plot)
+
+Remaining 5%: NW strip placement in NW of full plot is correct for Phase 1
+service use. Full Vastu will be addressed in future phases per AK Interiors plan.
+
+
+CONSTRUCTION SPECIFICATIONS
+─────────────────────────────
+Wall material   : Brick masonry, minimum 4.5 inch (one brick) thickness
+Roof type       : Flat RCC slab (preferred) or mild sloped — max 10ft height
+Flooring        : IPS or Kota stone
+Wall finish     : Light green or cream paint, interior and exterior
+Plumbing        : All pipes along West wall inside 5ft setback zone
+Drainage        : WEST DIRECT EXIT — see full spec in UNIT 1 section above
+Ventilation     : Toilet — exhaust fan West wall + louvre window East wall
+                  Both openings at ~7ft height (above door/head level)
+                  Room — East door is primary ventilation source
+                  NO North wall window (North wall = solid shared wall with
+                  toilet — any opening would pull toilet air into room)
+                  East wall high louvre above door if extra vent needed
+Electrical      : One light + one fan point per unit minimum
+                  One exhaust fan power point on West wall of toilet
+
+
+PHASE CONTEXT
+──────────────
+Phase 1 (this brief) : NW corner only — caretaker room + common toilet
+Phase 2+ (future)    : Full plot development per AK Interiors ground floor
+                       layout — sitting (36'9"x20'), kitchen (14'3"x18'9"),
+                       open kitchen, office (15'x13'6"), wash area, storage
+
+
+DRAWING REFERENCE
+──────────────────
+Architect drawing : GROUND FLOOR LAYOUT — AK Interiors
+                    Drawn by Diksha Singh, Checked by Mr. Achyut Kumar
+                    R0: 18/02/2026, R1: 17/03/2026
+PDF (2 pages)     : Greeneye_Nursery_NW_Layout.pdf
+                    Page 1 — Complete site plan (1ft = 5.2pt)
+                    Page 2 — Detail A: NW corner enlarged (1ft = 18pt)
+Page size         : A3 Landscape
+
+
+HOW TO USE THIS BRIEF WITH AN AI
+──────────────────────────────────
+Paste this entire document into any AI engine (ChatGPT, Gemini, Claude,
+Grok, Copilot etc.) and ask your specific question. Examples:
+
+  - "Estimate construction cost in Jaipur 2026"
+  - "Write a contractor specification sheet"
+  - "Generate a 2D SVG floor plan"
+  - "Review the ventilation and suggest improvements"
+  - "Create a 3D modelling prompt for Blender or SketchUp"
+  - "Write a construction timeline for Phase 1"
+  - "List all materials with approximate quantities"
+  - "Check against JDA Jaipur building bylaws"
+  - "Suggest plumbing layout for the toilet"
+  - "What electrical points are needed and where?"
+
+═══════════════════════════════════════════════════════════════════════════════
+END OF BRIEF
+Prepared by Claude (Anthropic) with Piyush Ji — 19 March 2026
+Reflects final design: W exhaust fan + E louvre cross ventilation, 60ft W road
++ 200ft S road corner plot, gate at 30ft N of SW corner, auto shutter at NW
+corner, pathway open both ends, solid dividing wall, no internal connection,
+toilet door South-biased (4ft+ NW Vayu corner clearance, hinged South jamb),
+drain exits West wall direct to soak pit at W boundary (Option 1 confirmed).
+═══════════════════════════════════════════════════════════════════════════════
