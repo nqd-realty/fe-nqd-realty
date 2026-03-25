@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createBuilding, createFixtures } from './building.js';
 import { createDoors, updateDoors, toggleNearestDoor, getNearestDoorInfo } from './doors.js';
-import { initControls, updateControls, isPointerLocked, getKeys, teleport } from './controls.js';
+import { initControls, updateControls, isPointerLocked, getKeys, teleport, presets, isMobile } from './controls.js';
 import { createEnvironment } from './environment.js';
 import { updateHUD, updateDoorPrompt, drawMinimap, toggleDimensions, updateDimensions } from './ui.js';
 
@@ -53,6 +53,47 @@ document.addEventListener('keydown', (e) => {
     toggleDimensions();
   }
 });
+
+// ============================================================
+// MOBILE BUTTON HANDLERS
+// ============================================================
+if (isMobile) {
+  // Action button — toggle nearest door
+  document.getElementById('action-btn').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (isPointerLocked()) {
+      toggleNearestDoor(camera.position);
+    }
+  }, { passive: false });
+
+  // Teleport button — show/hide menu
+  const tpBtn = document.getElementById('teleport-btn');
+  const tpMenu = document.getElementById('teleport-menu');
+
+  tpBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    tpMenu.classList.toggle('hidden');
+  }, { passive: false });
+
+  // Build teleport menu items
+  presets.forEach((p, i) => {
+    const item = document.createElement('button');
+    item.className = 'tp-item';
+    item.textContent = `${i + 1}. ${p.label}`;
+    item.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      teleport(camera, i);
+      tpMenu.classList.add('hidden');
+    }, { passive: false });
+    tpMenu.appendChild(item);
+  });
+
+  // Dimensions button
+  document.getElementById('dims-btn').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    toggleDimensions();
+  }, { passive: false });
+}
 
 // ============================================================
 // RENDER LOOP

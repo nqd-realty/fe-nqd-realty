@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <base href="/project/under-construction/g4/">
 <title>Greeneye Nursery — Walkthrough</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-body{overflow:hidden;background:#0a0f14;font-family:'DM Sans',sans-serif}
+body{overflow:hidden;background:#0a0f14;font-family:'DM Sans',sans-serif;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 
 /* Blocker / Start screen */
 #blocker{position:fixed;inset:0;background:rgba(6,10,16,0.92);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(8px)}
@@ -50,6 +50,44 @@ body{overflow:hidden;background:#0a0f14;font-family:'DM Sans',sans-serif}
 /* Info panel toggle */
 #info-toggle{position:fixed;top:14px;right:120px;z-index:50;background:rgba(10,15,20,0.7);border:1px solid rgba(255,255,255,0.1);color:#8b949e;font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;pointer-events:auto}
 #info-toggle:hover{color:#3fb950;border-color:#3fb950}
+
+/* ============================================================
+   MOBILE CONTROLS
+   ============================================================ */
+#mobile-controls{display:none}
+
+/* Virtual joystick */
+#joystick-zone{position:fixed;bottom:20px;left:20px;width:130px;height:130px;z-index:60;touch-action:none}
+#joystick-base{position:absolute;bottom:0;left:0;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06);border:2px solid rgba(63,185,80,0.3);display:flex;align-items:center;justify-content:center}
+#joystick-knob{width:44px;height:44px;border-radius:50%;background:rgba(63,185,80,0.35);border:2px solid rgba(63,185,80,0.6);transition:transform 0.05s linear;pointer-events:none}
+
+/* Mobile action buttons */
+#mobile-buttons{position:fixed;bottom:20px;right:20px;z-index:60;display:flex;flex-direction:column;gap:10px;align-items:center}
+.mobile-btn{width:52px;height:52px;border-radius:50%;border:2px solid rgba(63,185,80,0.4);background:rgba(10,15,20,0.7);color:#3fb950;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;touch-action:none;-webkit-tap-highlight-color:transparent}
+.mobile-btn:active{background:rgba(63,185,80,0.2);border-color:#3fb950}
+.mobile-btn.small{width:42px;height:42px;font-size:10px;border-color:rgba(212,160,48,0.4);color:#d4a030}
+.mobile-btn.small:active{background:rgba(212,160,48,0.15);border-color:#d4a030}
+
+/* Teleport menu */
+#teleport-menu{position:fixed;bottom:90px;right:20px;z-index:65;background:rgba(10,15,20,0.92);border:1px solid rgba(63,185,80,0.25);border-radius:10px;padding:8px;max-height:60vh;overflow-y:auto;backdrop-filter:blur(8px);min-width:220px}
+#teleport-menu.hidden{display:none}
+.tp-item{display:block;width:100%;text-align:left;background:none;border:none;color:#c9d1d9;font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 12px;border-radius:6px;touch-action:none;-webkit-tap-highlight-color:transparent}
+.tp-item:active{background:rgba(63,185,80,0.15);color:#3fb950}
+
+/* Mobile overrides */
+body.mobile #crosshair{display:none}
+body.mobile #esc-hint{display:none}
+body.mobile #mobile-controls{display:block}
+body.mobile #minimap{width:110px;height:180px;bottom:auto;top:50px;right:10px}
+body.mobile #hud .room-tag{font-size:13px}
+body.mobile #hud .loc{font-size:9px}
+body.mobile #door-prompt{bottom:160px}
+body.mobile .controls-desktop{display:none}
+body.mobile .controls-mobile{display:block}
+.controls-mobile{display:none}
+body.mobile .start-panel h1{font-size:22px}
+body.mobile .start-panel h2{font-size:12px;margin-bottom:18px}
+body.mobile .start-panel{padding:24px 20px}
 </style>
 
 <script type="importmap">
@@ -68,7 +106,9 @@ body{overflow:hidden;background:#0a0f14;font-family:'DM Sans',sans-serif}
     <h1>Greeneye Nursery</h1>
     <h2>NW Corner — Immersive Walkthrough</h2>
     <button class="start-btn" id="startBtn">Enter Building</button>
-    <div class="controls">
+
+    <!-- Desktop controls -->
+    <div class="controls controls-desktop">
       <h3>Controls</h3>
       <div class="ctrl-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>Move</span></div>
       <div class="ctrl-row"><kbd>Mouse</kbd> <span>Look around</span></div>
@@ -77,6 +117,16 @@ body{overflow:hidden;background:#0a0f14;font-family:'DM Sans',sans-serif}
       <div class="ctrl-row"><kbd>1</kbd>–<kbd>9</kbd> <span>Teleport (building, gate, aerial, road...)</span></div>
       <div class="ctrl-row"><kbd>M</kbd> <span>Toggle room dimensions</span></div>
       <div class="ctrl-row"><kbd>Esc</kbd> <span>Release cursor</span></div>
+    </div>
+
+    <!-- Mobile controls -->
+    <div class="controls controls-mobile">
+      <h3>Controls</h3>
+      <div class="ctrl-row"><span style="color:#3fb950">Left thumb</span> <span>Virtual joystick — move</span></div>
+      <div class="ctrl-row"><span style="color:#3fb950">Right thumb</span> <span>Drag to look around</span></div>
+      <div class="ctrl-row"><kbd>E</kbd> <span>button — Open / close doors</span></div>
+      <div class="ctrl-row"><kbd>TP</kbd> <span>button — Teleport to locations</span></div>
+      <div class="ctrl-row"><kbd>M</kbd> <span>button — Room dimensions</span></div>
     </div>
   </div>
 </div>
@@ -91,6 +141,21 @@ body{overflow:hidden;background:#0a0f14;font-family:'DM Sans',sans-serif}
   <div class="door-prompt-inner">Press <kbd>E</kbd> to <span id="door-action">open</span> <span id="door-name">door</span></div>
 </div>
 <div id="minimap"><canvas id="mapCanvas" width="170" height="275"></canvas></div>
+
+<!-- Mobile touch controls (shown via body.mobile class) -->
+<div id="mobile-controls">
+  <div id="joystick-zone">
+    <div id="joystick-base">
+      <div id="joystick-knob"></div>
+    </div>
+  </div>
+  <div id="mobile-buttons">
+    <button class="mobile-btn" id="action-btn">E</button>
+    <button class="mobile-btn small" id="teleport-btn">TP</button>
+    <button class="mobile-btn small" id="dims-btn">M</button>
+  </div>
+  <div id="teleport-menu" class="hidden"></div>
+</div>
 
 <script type="module" src="js/main.js"></script>
 </body>

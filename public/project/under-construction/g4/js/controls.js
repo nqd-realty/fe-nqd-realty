@@ -12,29 +12,47 @@ const moveDir = new THREE.Vector3();
 const keys = {};
 let isLocked = false;
 
+// Mobile detection
+export const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+  ('ontouchstart' in window && window.innerWidth < 1024);
+
+// Touch joystick vector (-1 to 1)
+const touchMoveVec = { x: 0, y: 0 };
+
 export function isPointerLocked() { return isLocked; }
 
 export function initControls(camera, renderer) {
   const blocker = document.getElementById('blocker');
   const startBtn = document.getElementById('startBtn');
 
-  startBtn.addEventListener('click', () => {
-    renderer.domElement.requestPointerLock();
-  });
+  if (isMobile) {
+    document.body.classList.add('mobile');
 
-  document.addEventListener('pointerlockchange', () => {
-    isLocked = document.pointerLockElement === renderer.domElement;
-    blocker.classList.toggle('hidden', isLocked);
-  });
+    startBtn.addEventListener('click', () => {
+      isLocked = true;
+      blocker.classList.add('hidden');
+    });
 
-  document.addEventListener('mousemove', (e) => {
-    if (!isLocked) return;
-    euler.setFromQuaternion(camera.quaternion);
-    euler.y -= e.movementX * 0.002;
-    euler.x -= e.movementY * 0.002;
-    euler.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, euler.x));
-    camera.quaternion.setFromEuler(euler);
-  });
+    initTouchControls(camera);
+  } else {
+    startBtn.addEventListener('click', () => {
+      renderer.domElement.requestPointerLock();
+    });
+
+    document.addEventListener('pointerlockchange', () => {
+      isLocked = document.pointerLockElement === renderer.domElement;
+      blocker.classList.toggle('hidden', isLocked);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isLocked) return;
+      euler.setFromQuaternion(camera.quaternion);
+      euler.y -= e.movementX * 0.002;
+      euler.x -= e.movementY * 0.002;
+      euler.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, euler.x));
+      camera.quaternion.setFromEuler(euler);
+    });
+  }
 
   document.addEventListener('keydown', (e) => { keys[e.code] = true; });
   document.addEventListener('keyup', (e) => { keys[e.code] = false; });
@@ -42,6 +60,90 @@ export function initControls(camera, renderer) {
   // Set initial position
   camera.position.set(11, PLAYER_HEIGHT, 9.5);
   camera.rotation.order = 'YXZ';
+}
+
+function initTouchControls(camera) {
+  let lookTouchId = -1;
+  let lastLookX = 0, lastLookY = 0;
+  let joystickTouchId = -1;
+  let joyCenterX = 0, joyCenterY = 0;
+
+  const joyZone = document.getElementById('joystick-zone');
+  const joyKnob = document.getElementById('joystick-knob');
+  const joyBase = document.getElementById('joystick-base');
+  const maxRadius = 40;
+
+  // Joystick touch start
+  joyZone.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    joystickTouchId = touch.identifier;
+    const rect = joyBase.getBoundingClientRect();
+    joyCenterX = rect.left + rect.width / 2;
+    joyCenterY = rect.top + rect.height / 2;
+  }, { passive: false });
+
+  // Look touch start (on non-UI areas)
+  document.addEventListener('touchstart', (e) => {
+    for (const touch of e.changedTouches) {
+      const target = touch.target;
+      if (target.closest('#joystick-zone') || target.closest('#mobile-buttons') ||
+          target.closest('#blocker') || target.closest('#minimap') ||
+          target.closest('#teleport-menu')) continue;
+      if (lookTouchId === -1) {
+        lookTouchId = touch.identifier;
+        lastLookX = touch.clientX;
+        lastLookY = touch.clientY;
+      }
+    }
+  }, { passive: true });
+
+  // Unified touchmove on document (reliable even if finger drifts off element)
+  document.addEventListener('touchmove', (e) => {
+    for (const touch of e.changedTouches) {
+      if (touch.identifier === joystickTouchId) {
+        e.preventDefault();
+        let dx = touch.clientX - joyCenterX;
+        let dy = touch.clientY - joyCenterY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > maxRadius) {
+          dx = dx / dist * maxRadius;
+          dy = dy / dist * maxRadius;
+        }
+        joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+        touchMoveVec.x = dx / maxRadius;
+        touchMoveVec.y = dy / maxRadius;
+      } else if (touch.identifier === lookTouchId && isLocked) {
+        const dx = touch.clientX - lastLookX;
+        const dy = touch.clientY - lastLookY;
+        lastLookX = touch.clientX;
+        lastLookY = touch.clientY;
+
+        euler.setFromQuaternion(camera.quaternion);
+        euler.y -= dx * 0.004;
+        euler.x -= dy * 0.004;
+        euler.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, euler.x));
+        camera.quaternion.setFromEuler(euler);
+      }
+    }
+  }, { passive: false });
+
+  // Unified touchend / touchcancel
+  const endTouch = (e) => {
+    for (const touch of e.changedTouches) {
+      if (touch.identifier === joystickTouchId) {
+        joystickTouchId = -1;
+        touchMoveVec.x = 0;
+        touchMoveVec.y = 0;
+        joyKnob.style.transform = 'translate(0px, 0px)';
+      }
+      if (touch.identifier === lookTouchId) {
+        lookTouchId = -1;
+      }
+    }
+  };
+  document.addEventListener('touchend', endTouch);
+  document.addEventListener('touchcancel', endTouch);
 }
 
 export function getKeys() { return keys; }
@@ -67,10 +169,15 @@ export function updateControls(camera, delta) {
 
   // Calculate movement direction
   moveDir.set(0, 0, 0);
-  if (keys['KeyW']) moveDir.z = -1;
-  if (keys['KeyS']) moveDir.z = 1;
-  if (keys['KeyA']) moveDir.x = -1;
-  if (keys['KeyD']) moveDir.x = 1;
+  if (isMobile) {
+    moveDir.x = touchMoveVec.x;
+    moveDir.z = touchMoveVec.y;
+  } else {
+    if (keys['KeyW']) moveDir.z = -1;
+    if (keys['KeyS']) moveDir.z = 1;
+    if (keys['KeyA']) moveDir.x = -1;
+    if (keys['KeyD']) moveDir.x = 1;
+  }
   moveDir.normalize();
 
   // Get camera forward and right (horizontal only)
