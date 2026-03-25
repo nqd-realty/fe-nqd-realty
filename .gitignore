@@ -42,3 +42,5 @@ next-env.d.ts
 
 # Windows reserved files
 nul
+
+/local/
