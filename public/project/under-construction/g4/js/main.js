@@ -4,6 +4,7 @@ import { createDoors, updateDoors, toggleNearestDoor, getNearestDoorInfo } from 
 import { initControls, updateControls, isPointerLocked, getKeys, teleport, presets, isMobile } from './controls.js';
 import { createEnvironment } from './environment.js';
 import { updateHUD, updateDoorPrompt, drawMinimap, toggleDimensions, updateDimensions } from './ui.js';
+import { createAvatar } from '../../../../shared/js/avatar.js';
 
 // ============================================================
 // SCENE
@@ -34,6 +35,49 @@ createDoors(scene);
 initControls(camera, renderer);
 
 // ============================================================
+// AVATAR + VIEW MODE
+// ============================================================
+const playerAvatar = createAvatar({
+  firstPerson: true,
+  hasClipboard: true,
+  hasHardHat: true,
+});
+scene.add(playerAvatar.group);
+
+// Third-person camera state
+let thirdPerson = true; // default: third person so avatar is visible
+const CAM_BACK = 6;     // max distance behind player
+const CAM_UP = 2.5;     // height above player eye level
+const CAM_MIN = 0.8;    // minimum distance (don't clip into player)
+const playerPos = new THREE.Vector3(11, 5.2, 9.5); // matches initial camera pos in controls
+const _back = new THREE.Vector3();
+let playerPosReady = false;
+
+// CS 1.6 style camera collision
+const raycaster = new THREE.Raycaster();
+const _rayOrigin = new THREE.Vector3();
+const _rayTarget = new THREE.Vector3();
+const _rayDir = new THREE.Vector3();
+let currentCamDist = CAM_BACK; // smoothed distance (lerps toward target)
+
+function isDescendantOf(obj, ancestor) {
+  let cur = obj;
+  while (cur) {
+    if (cur === ancestor) return true;
+    cur = cur.parent;
+  }
+  return false;
+}
+
+// Start in third person — show head
+playerAvatar.setHeadVisible(true);
+
+function toggleView() {
+  thirdPerson = !thirdPerson;
+  playerAvatar.setHeadVisible(thirdPerson);
+}
+
+// ============================================================
 // INPUT
 // ============================================================
 document.addEventListener('keydown', (e) => {
@@ -43,14 +87,19 @@ document.addEventListener('keydown', (e) => {
     if (idx >= 0 && idx < 9) teleport(camera, idx);
   }
 
-  // E — toggle door
+  // E — toggle door (use player position, not offset camera)
   if (e.code === 'KeyE' && isPointerLocked()) {
-    toggleNearestDoor(camera.position);
+    toggleNearestDoor(thirdPerson ? playerPos : camera.position);
   }
 
   // M — toggle dimensions overlay
   if (e.code === 'KeyM') {
     toggleDimensions();
+  }
+
+  // V — toggle first/third person view
+  if (e.code === 'KeyV') {
+    toggleView();
   }
 });
 
@@ -62,7 +111,7 @@ if (isMobile) {
   document.getElementById('action-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
     if (isPointerLocked()) {
-      toggleNearestDoor(camera.position);
+      toggleNearestDoor(thirdPerson ? playerPos : camera.position);
     }
   }, { passive: false });
 
@@ -93,6 +142,12 @@ if (isMobile) {
     e.preventDefault();
     toggleDimensions();
   }, { passive: false });
+
+  // View toggle button
+  document.getElementById('view-btn').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    toggleView();
+  }, { passive: false });
 }
 
 // ============================================================
@@ -104,14 +159,68 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
 
+  // In third-person, restore camera to player position before controls update
+  // so WASD/collision operates from the player's actual location, not the offset camera
+  if (thirdPerson && playerPosReady) {
+    camera.position.copy(playerPos);
+  }
+
   updateControls(camera, delta);
   updateDoors(delta);
 
+  // Save where controls placed the camera — this is the true player position
+  playerPos.copy(camera.position);
+  playerPosReady = true;
+
+  // Sync avatar to player position (camera is at playerPos right now)
+  playerAvatar.update(delta, camera);
+
+  // Third-person: offset camera behind player with wall collision (CS 1.6 style)
+  if (thirdPerson) {
+    // Get the "behind" direction (horizontal only)
+    _back.set(0, 0, 1).applyQuaternion(camera.quaternion);
+    const hLen = Math.sqrt(_back.x * _back.x + _back.z * _back.z);
+    if (hLen > 0.001) { _back.x /= hLen; _back.z /= hLen; }
+
+    // Desired camera position at full distance
+    _rayTarget.set(
+      playerPos.x + _back.x * CAM_BACK,
+      playerPos.y + CAM_UP,
+      playerPos.z + _back.z * CAM_BACK
+    );
+
+    // Raycast from player head toward desired camera position
+    _rayOrigin.copy(playerPos);
+    _rayDir.copy(_rayTarget).sub(_rayOrigin);
+    const maxDist = _rayDir.length();
+    _rayDir.normalize();
+
+    raycaster.set(_rayOrigin, _rayDir);
+    raycaster.far = maxDist;
+    raycaster.near = 0;
+
+    // Find closest wall/geometry hit (skip avatar meshes)
+    let targetDist = maxDist;
+    const hits = raycaster.intersectObjects(scene.children, true);
+    for (const hit of hits) {
+      if (isDescendantOf(hit.object, playerAvatar.group)) continue;
+      // Pull camera in front of the wall
+      targetDist = Math.max(CAM_MIN, hit.distance - 0.3);
+      break;
+    }
+
+    // Smooth lerp toward target distance (fast pull-in, slower pull-out)
+    const lerpSpeed = targetDist < currentCamDist ? 15 : 5;
+    currentCamDist += (targetDist - currentCamDist) * Math.min(delta * lerpSpeed, 1);
+
+    camera.position.copy(_rayOrigin).addScaledVector(_rayDir, currentCamDist);
+  }
+
   // UI updates
   if (isPointerLocked()) {
-    updateHUD(camera);
-    updateDimensions(camera);
-    const doorInfo = getNearestDoorInfo(camera.position);
+    updateHUD(thirdPerson ? { position: playerPos } : camera);
+    updateDimensions(thirdPerson ? { position: playerPos } : camera);
+    const doorInfo = getNearestDoorInfo(thirdPerson ? playerPos : camera.position);
     updateDoorPrompt(doorInfo);
   } else {
     updateDoorPrompt(null);

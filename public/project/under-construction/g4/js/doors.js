@@ -36,6 +36,7 @@ export function createDoors(scene) {
     speed: 4,
     label: 'Toilet Door',
     proximityCenter: new THREE.Vector3(-1, 3, 13.25),
+    collider: addDynamicCollider(-1.75, -1, 12.25, 14.75),
   };
   scene.add(toilDoorPivot);
 
@@ -70,6 +71,7 @@ export function createDoors(scene) {
     speed: 4,
     label: 'Room Door',
     proximityCenter: new THREE.Vector3(8, 3, 9.5),
+    collider: addDynamicCollider(8, 8.75, 8, 11),
   };
   scene.add(roomDoorPivot);
 
@@ -253,9 +255,9 @@ export function toggleNearestDoor(cameraPos) {
       ud.targetAngle = ud.isOpen ? ud.openAngle : ud.closeAngle;
     } else if (ud.type === 'shutter') {
       ud.targetY = ud.isOpen ? ud.openY : ud.closeY;
-      // Enable/disable collider
-      if (ud.collider) ud.collider.active = !ud.isOpen;
     }
+    // Enable/disable collider for all door types
+    if (ud.collider) ud.collider.active = !ud.isOpen;
     return true;
   }
   return false;
