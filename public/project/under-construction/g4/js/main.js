@@ -12,17 +12,14 @@ import { createAvatar } from '../../../../shared/js/avatar.js';
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
-  72, window.innerWidth / window.innerHeight, 0.1, isMobile ? 200 : 600
+  72, window.innerWidth / window.innerHeight, 0.1, 600
 );
 
-// Mobile: no antialiasing, lower pixel ratio, no soft shadows
-const renderer = new THREE.WebGLRenderer({ antialias: !isMobile });
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
-if (!isMobile) {
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.8;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -31,9 +28,9 @@ document.body.appendChild(renderer.domElement);
 // ============================================================
 // BUILD WORLD
 // ============================================================
-createEnvironment(scene, isMobile);
-createBuilding(scene, isMobile);
-createFixtures(scene, isMobile);
+createEnvironment(scene);
+createBuilding(scene);
+createFixtures(scene);
 createDoors(scene);
 initControls(camera, renderer);
 
@@ -48,11 +45,11 @@ const playerAvatar = createAvatar({
 scene.add(playerAvatar.group);
 
 // Third-person camera state
-let thirdPerson = true;
-const CAM_BACK = 6;
-const CAM_UP = 2.5;
-const CAM_MIN = 0.8;
-const playerPos = new THREE.Vector3(11, 5.2, 9.5);
+let thirdPerson = true; // default: third person so avatar is visible
+const CAM_BACK = 6;     // max distance behind player
+const CAM_UP = 2.5;     // height above player eye level
+const CAM_MIN = 0.8;    // minimum distance (don't clip into player)
+const playerPos = new THREE.Vector3(11, 5.2, 9.5); // matches initial camera pos in controls
 const _back = new THREE.Vector3();
 let playerPosReady = false;
 
@@ -61,9 +58,7 @@ const raycaster = new THREE.Raycaster();
 const _rayOrigin = new THREE.Vector3();
 const _rayTarget = new THREE.Vector3();
 const _rayDir = new THREE.Vector3();
-let currentCamDist = CAM_BACK;
-let rayTargetDist = CAM_BACK; // last computed target (for throttled raycast)
-let rayFrame = 0;
+let currentCamDist = CAM_BACK; // smoothed distance (lerps toward target)
 
 function isDescendantOf(obj, ancestor) {
   let cur = obj;
@@ -74,7 +69,7 @@ function isDescendantOf(obj, ancestor) {
   return false;
 }
 
-// Start in third person
+// Start in third person — show head
 playerAvatar.setHeadVisible(true);
 
 function toggleView() {
@@ -86,23 +81,33 @@ function toggleView() {
 // INPUT
 // ============================================================
 document.addEventListener('keydown', (e) => {
+  // Teleport 1-9
   if (e.code.startsWith('Digit') && e.code.length === 6) {
     const idx = parseInt(e.code[5]) - 1;
     if (idx >= 0 && idx < 9) teleport(camera, idx);
   }
 
+  // E — toggle door (use player position, not offset camera)
   if (e.code === 'KeyE' && isPointerLocked()) {
     toggleNearestDoor(thirdPerson ? playerPos : camera.position);
   }
 
-  if (e.code === 'KeyM') toggleDimensions();
-  if (e.code === 'KeyV') toggleView();
+  // M — toggle dimensions overlay
+  if (e.code === 'KeyM') {
+    toggleDimensions();
+  }
+
+  // V — toggle first/third person view
+  if (e.code === 'KeyV') {
+    toggleView();
+  }
 });
 
 // ============================================================
 // MOBILE BUTTON HANDLERS
 // ============================================================
 if (isMobile) {
+  // Action button — toggle nearest door
   document.getElementById('action-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
     if (isPointerLocked()) {
@@ -110,6 +115,7 @@ if (isMobile) {
     }
   }, { passive: false });
 
+  // Teleport button — show/hide menu
   const tpBtn = document.getElementById('teleport-btn');
   const tpMenu = document.getElementById('teleport-menu');
 
@@ -118,6 +124,7 @@ if (isMobile) {
     tpMenu.classList.toggle('hidden');
   }, { passive: false });
 
+  // Build teleport menu items
   presets.forEach((p, i) => {
     const item = document.createElement('button');
     item.className = 'tp-item';
@@ -130,11 +137,13 @@ if (isMobile) {
     tpMenu.appendChild(item);
   });
 
+  // Dimensions button
   document.getElementById('dims-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
     toggleDimensions();
   }, { passive: false });
 
+  // View toggle button
   document.getElementById('view-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
     toggleView();
@@ -145,12 +154,13 @@ if (isMobile) {
 // RENDER LOOP
 // ============================================================
 const clock = new THREE.Clock();
-let mapFrame = 0;
 
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
 
+  // In third-person, restore camera to player position before controls update
+  // so WASD/collision operates from the player's actual location, not the offset camera
   if (thirdPerson && playerPosReady) {
     camera.position.copy(playerPos);
   }
@@ -158,48 +168,50 @@ function animate() {
   updateControls(camera, delta);
   updateDoors(delta);
 
+  // Save where controls placed the camera — this is the true player position
   playerPos.copy(camera.position);
   playerPosReady = true;
 
+  // Sync avatar to player position (camera is at playerPos right now)
   playerAvatar.update(delta, camera);
 
-  // Third-person camera with wall collision
+  // Third-person: offset camera behind player with wall collision (CS 1.6 style)
   if (thirdPerson) {
+    // Get the "behind" direction (horizontal only)
     _back.set(0, 0, 1).applyQuaternion(camera.quaternion);
     const hLen = Math.sqrt(_back.x * _back.x + _back.z * _back.z);
     if (hLen > 0.001) { _back.x /= hLen; _back.z /= hLen; }
 
+    // Desired camera position at full distance
     _rayTarget.set(
       playerPos.x + _back.x * CAM_BACK,
       playerPos.y + CAM_UP,
       playerPos.z + _back.z * CAM_BACK
     );
 
+    // Raycast from player head toward desired camera position
     _rayOrigin.copy(playerPos);
     _rayDir.copy(_rayTarget).sub(_rayOrigin);
     const maxDist = _rayDir.length();
     _rayDir.normalize();
 
-    // Throttle raycast on mobile (every 4th frame) — biggest perf save
-    rayFrame++;
-    const shouldRaycast = isMobile ? (rayFrame % 4 === 0) : true;
+    raycaster.set(_rayOrigin, _rayDir);
+    raycaster.far = maxDist;
+    raycaster.near = 0;
 
-    if (shouldRaycast) {
-      raycaster.set(_rayOrigin, _rayDir);
-      raycaster.far = maxDist;
-      raycaster.near = 0;
-
-      rayTargetDist = maxDist;
-      const hits = raycaster.intersectObjects(scene.children, true);
-      for (const hit of hits) {
-        if (isDescendantOf(hit.object, playerAvatar.group)) continue;
-        rayTargetDist = Math.max(CAM_MIN, hit.distance - 0.3);
-        break;
-      }
+    // Find closest wall/geometry hit (skip avatar meshes)
+    let targetDist = maxDist;
+    const hits = raycaster.intersectObjects(scene.children, true);
+    for (const hit of hits) {
+      if (isDescendantOf(hit.object, playerAvatar.group)) continue;
+      // Pull camera in front of the wall
+      targetDist = Math.max(CAM_MIN, hit.distance - 0.3);
+      break;
     }
 
-    const lerpSpeed = rayTargetDist < currentCamDist ? 15 : 5;
-    currentCamDist += (rayTargetDist - currentCamDist) * Math.min(delta * lerpSpeed, 1);
+    // Smooth lerp toward target distance (fast pull-in, slower pull-out)
+    const lerpSpeed = targetDist < currentCamDist ? 15 : 5;
+    currentCamDist += (targetDist - currentCamDist) * Math.min(delta * lerpSpeed, 1);
 
     camera.position.copy(_rayOrigin).addScaledVector(_rayDir, currentCamDist);
   }
@@ -214,12 +226,7 @@ function animate() {
     updateDoorPrompt(null);
   }
 
-  // Throttle minimap on mobile (every 3rd frame)
-  mapFrame++;
-  if (!isMobile || mapFrame % 3 === 0) {
-    drawMinimap(camera);
-  }
-
+  drawMinimap(camera);
   renderer.render(scene, camera);
 }
 
