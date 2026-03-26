@@ -51,9 +51,11 @@ export function addDynamicCollider(minX, maxX, minZ, maxZ) {
 }
 
 // Waves glass block wall
-function createGlassBlockWall(scene, x, startY, startZ, zSpan, ySpan, blockSize) {
+function createGlassBlockWall(scene, x, startY, startZ, zSpan, ySpan, blockSize, mobile = false) {
   const gap = 0.05;
-  const step = blockSize + gap;
+  // Mobile: double block size → 1/4 the blocks
+  const effBlockSize = mobile ? blockSize * 2 : blockSize;
+  const step = effBlockSize + gap;
   const depth = 0.3;
   const cols = Math.floor(zSpan / step);
   const rows = Math.floor(ySpan / step);
@@ -63,41 +65,46 @@ function createGlassBlockWall(scene, x, startY, startZ, zSpan, ySpan, blockSize)
   mortarPlane.position.set(x - depth / 2 - 0.01, startY + (rows * step) / 2, startZ + (cols * step) / 2);
   scene.add(mortarPlane);
 
+  // Shared materials (reuse instead of creating per block)
+  const ridgeMat = !mobile ? new THREE.MeshStandardMaterial({
+    color: new THREE.Color().setHSL(0.53, 0.08, 0.8),
+    roughness: 0.08, metalness: 0.05, transparent: true, opacity: 0.18
+  }) : null;
+
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      const bz = startZ + col * step + blockSize / 2;
-      const by = startY + row * step + blockSize / 2;
+      const bz = startZ + col * step + effBlockSize / 2;
+      const by = startY + row * step + effBlockSize / 2;
       const hueShift = Math.sin(row * 1.2 + col * 0.8) * 15;
-      const waveAlpha = 0.28 + Math.sin(row * 0.9 + col * 1.3) * 0.08;
+      const waveAlpha = mobile ? 0.3 : (0.28 + Math.sin(row * 0.9 + col * 1.3) * 0.08);
 
       const blockMat = new THREE.MeshStandardMaterial({
         color: new THREE.Color().setHSL(0.52 + hueShift / 360, 0.12, 0.72 + hueShift / 500),
         roughness: 0.15 + Math.random() * 0.1, metalness: 0.05,
-        transparent: true, opacity: waveAlpha, side: THREE.DoubleSide
+        transparent: true, opacity: waveAlpha, side: mobile ? THREE.FrontSide : THREE.DoubleSide
       });
-      const block = new THREE.Mesh(new THREE.BoxGeometry(depth, blockSize - 0.02, blockSize - 0.02), blockMat);
+      const block = new THREE.Mesh(new THREE.BoxGeometry(depth, effBlockSize - 0.02, effBlockSize - 0.02), blockMat);
       block.position.set(x, by, bz);
-      block.castShadow = false; block.receiveShadow = true;
+      block.castShadow = false; block.receiveShadow = !mobile;
       scene.add(block);
 
-      const ridgeMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color().setHSL(0.53, 0.08, 0.8),
-        roughness: 0.08, metalness: 0.05, transparent: true, opacity: 0.18
-      });
-      const ridge = new THREE.Mesh(new THREE.BoxGeometry(depth * 0.3, blockSize * 0.6, 0.04), ridgeMat);
-      ridge.position.set(x + depth * 0.15, by, bz);
-      ridge.rotation.x = 0.3 + Math.sin(row + col) * 0.15;
-      scene.add(ridge);
+      // Ridges — desktop only (~144 meshes saved)
+      if (!mobile) {
+        const ridge = new THREE.Mesh(new THREE.BoxGeometry(depth * 0.3, effBlockSize * 0.6, 0.04), ridgeMat);
+        ridge.position.set(x + depth * 0.15, by, bz);
+        ridge.rotation.x = 0.3 + Math.sin(row + col) * 0.15;
+        scene.add(ridge);
 
-      const ridge2 = new THREE.Mesh(new THREE.BoxGeometry(depth * 0.3, 0.04, blockSize * 0.6), ridgeMat);
-      ridge2.position.set(x + depth * 0.15, by, bz);
-      ridge2.rotation.z = 0.25 + Math.cos(row + col) * 0.1;
-      scene.add(ridge2);
+        const ridge2 = new THREE.Mesh(new THREE.BoxGeometry(depth * 0.3, 0.04, effBlockSize * 0.6), ridgeMat);
+        ridge2.position.set(x + depth * 0.15, by, bz);
+        ridge2.rotation.z = 0.25 + Math.cos(row + col) * 0.1;
+        scene.add(ridge2);
+      }
     }
   }
 }
 
-export function createBuilding(scene) {
+export function createBuilding(scene, mobile = false) {
   // ============================================================
   // FLOORS
   // ============================================================
@@ -126,7 +133,7 @@ export function createBuilding(scene) {
   box(scene, W, 0.15, 6, 8 + W / 2, 2.55, 5, M.frame);
   box(scene, W, 5.5, 0.15, 8 + W / 2, 5.25, 2, M.frame);
   box(scene, W, 5.5, 0.15, 8 + W / 2, 5.25, 8, M.frame);
-  createGlassBlockWall(scene, 8 + W / 2, 2.65, 2.075, 5.85, 5.4, 0.67);
+  createGlassBlockWall(scene, 8 + W / 2, 2.65, 2.075, 5.85, 5.4, 0.67, mobile);
   addCollider(8, 8 + W, 2, 8);
   // Above room door (Z=8..11, above 7ft)
   box(scene, W, 3, 3, 8 + W / 2, 8.5, 9.5, M.wall);
@@ -222,7 +229,7 @@ function createDeckSheetRoof(scene) {
   box(scene, cantEastW, fasciaH, fasciaT, cantEastCX, roofH - fasciaH / 2 + 0.04, cantEastZ2, M.purlin);
 }
 
-export function createFixtures(scene) {
+export function createFixtures(scene, mobile = false) {
   // ============================================================
   // TOILET FIXTURES (Z=11.75 to Z=17.75, X=-1 to X=8)
   // ============================================================
@@ -373,10 +380,11 @@ export function createFixtures(scene) {
   box(scene, 1.2, 0.3, 0.6, 5.2, 1.35, 2.4, M.pillow);
   addCollider(0.7, 6.7, 2, 8, 0, 1.5);
 
-  // Louver window (E wall, Z=2..8)
+  // Louver window (E wall, Z=2..8) — fewer slats on mobile
   box(scene, 0.15, 9, 6, 8, 4.5, 5, M.louver);
-  for (let i = 0; i < 20; i++) {
-    box(scene, 0.12, 0.03, 5.8, 8.05, 0.5 + i * 0.45, 5, M.louver);
+  const louverStep = mobile ? 1.8 : 0.45;
+  for (let y = 0.5; y < 9.5; y += louverStep) {
+    box(scene, 0.12, 0.03, 5.8, 8.05, y, 5, M.louver);
   }
 
   // Room high louvre (W wall @7ft)
