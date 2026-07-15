@@ -549,18 +549,31 @@ function createCChannelLighting(scene) {
       scene.add(clip);
     }
 
-    // Actual light — point light for fill
-    const color = warmth === 'warm' ? 0xFFE0B0 : 0xE8EEFF;
-    const light = new THREE.PointLight(color, intensity, radius);
-    light.position.set(x, fixtureY - 0.15, z);
-    scene.add(light);
+    // NOTE: no per-batten lights. 22 battens × (PointLight + SpotLight) = 44
+    // dynamic lights made every fragment evaluate 47 lights and dropped weak
+    // GPUs to ~27fps. Illumination comes from the emissive diffuser strips +
+    // a few zone lights added in addZoneLights().
+  }
 
-    // Downward spot for focused pool
-    const spot = new THREE.SpotLight(color, intensity * 0.8, radius * 0.9, Math.PI / 3.5, 0.6, 1.2);
-    spot.position.set(x, fixtureY - 0.1, z);
-    spot.target.position.set(x, 0, z);
-    scene.add(spot);
-    scene.add(spot.target);
+  // ============================================================
+  // ZONE LIGHTS — one light per area instead of per fixture
+  // Keeps total scene lights in single digits
+  // ============================================================
+  function addZoneLights() {
+    // Room (Z=2..11) — warm fill covering both tray runs
+    const roomLight = new THREE.PointLight(0xFFE0B0, 2.2, 26);
+    roomLight.position.set(4, roofH - 1.5, 6.5);
+    scene.add(roomLight);
+
+    // Toilet (Z=11.75..17.75)
+    const toiletLight = new THREE.PointLight(0xFFE0B0, 1.8, 18);
+    toiletLight.position.set(4, roofH - 1.5, 14.75);
+    scene.add(toiletLight);
+
+    // Parking (Z=18.5..35) — cool white
+    const parkingLight = new THREE.PointLight(0xE8EEFF, 1.6, 32);
+    parkingLight.position.set(1.5, roofH - 1.5, 27);
+    scene.add(parkingLight);
   }
 
   // ============================================================
@@ -612,4 +625,6 @@ function createCChannelLighting(scene) {
   addLEDBatten(9, 4, 2, 'warm', 0.2, 6, et.trayY);
   addLEDBatten(9, 9, 2, 'warm', 0.2, 6, et.trayY);
   addLEDBatten(9, 14, 2, 'warm', 0.2, 6, et.trayY);
+
+  addZoneLights();
 }
