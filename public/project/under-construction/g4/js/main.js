@@ -5,6 +5,7 @@ import { initControls, updateControls, isPointerLocked, getKeys, teleport, prese
 import { createEnvironment } from './environment.js';
 import { updateHUD, updateDoorPrompt, drawMinimap, toggleDimensions, updateDimensions } from './ui.js';
 import { createAvatar } from '../../../../shared/js/avatar.js';
+import { createProfiler } from '../../../../shared/js/profiler.js';
 
 // ============================================================
 // SCENE
@@ -71,6 +72,9 @@ function isDescendantOf(obj, ancestor) {
 
 // Start in third person — show head
 playerAvatar.setHeadVisible(true);
+
+// Profiler — activate with ?profile=1 or press P
+const profiler = createProfiler({ renderer, scene, camera, avatar: playerAvatar });
 
 function toggleView() {
   thirdPerson = !thirdPerson;
@@ -165,17 +169,22 @@ function animate() {
     camera.position.copy(playerPos);
   }
 
+  profiler.begin('controls+doors');
   updateControls(camera, delta);
   updateDoors(delta);
+  profiler.end();
 
   // Save where controls placed the camera — this is the true player position
   playerPos.copy(camera.position);
   playerPosReady = true;
 
   // Sync avatar to player position (camera is at playerPos right now)
-  playerAvatar.update(delta, camera);
+  profiler.begin('avatar');
+  if (profiler.flags.avatar) playerAvatar.update(delta, camera);
+  profiler.end();
 
   // Third-person: offset camera behind player with wall collision (CS 1.6 style)
+  profiler.begin('cam raycast');
   if (thirdPerson) {
     // Get the "behind" direction (horizontal only)
     _back.set(0, 0, 1).applyQuaternion(camera.quaternion);
@@ -201,12 +210,14 @@ function animate() {
 
     // Find closest wall/geometry hit (skip avatar meshes)
     let targetDist = maxDist;
-    const hits = raycaster.intersectObjects(scene.children, true);
-    for (const hit of hits) {
-      if (isDescendantOf(hit.object, playerAvatar.group)) continue;
-      // Pull camera in front of the wall
-      targetDist = Math.max(CAM_MIN, hit.distance - 0.3);
-      break;
+    if (profiler.flags.camRaycast) {
+      const hits = raycaster.intersectObjects(scene.children, true);
+      for (const hit of hits) {
+        if (isDescendantOf(hit.object, playerAvatar.group)) continue;
+        // Pull camera in front of the wall
+        targetDist = Math.max(CAM_MIN, hit.distance - 0.3);
+        break;
+      }
     }
 
     // Smooth lerp toward target distance (fast pull-in, slower pull-out)
@@ -215,8 +226,10 @@ function animate() {
 
     camera.position.copy(_rayOrigin).addScaledVector(_rayDir, currentCamDist);
   }
+  profiler.end();
 
   // UI updates
+  profiler.begin('ui+minimap');
   if (isPointerLocked()) {
     updateHUD(thirdPerson ? { position: playerPos } : camera);
     updateDimensions(thirdPerson ? { position: playerPos } : camera);
@@ -227,7 +240,13 @@ function animate() {
   }
 
   drawMinimap(camera);
+  profiler.end();
+
+  profiler.begin('render (CPU)');
   renderer.render(scene, camera);
+  profiler.end();
+
+  profiler.frame();
 }
 
 animate();
