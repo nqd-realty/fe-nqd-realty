@@ -81,6 +81,15 @@ function toggleView() {
   playerAvatar.setHeadVisible(thirdPerson);
 }
 
+// Teleport that works in both views — in third person the render loop
+// restores camera.position from playerPos each frame, so playerPos must
+// be moved too or the teleport is undone before it renders
+function doTeleport(idx) {
+  teleport(camera, idx);
+  playerPos.copy(camera.position);
+  playerPosReady = true;
+}
+
 // ============================================================
 // INPUT
 // ============================================================
@@ -88,7 +97,7 @@ document.addEventListener('keydown', (e) => {
   // Teleport 1-9
   if (e.code.startsWith('Digit') && e.code.length === 6) {
     const idx = parseInt(e.code[5]) - 1;
-    if (idx >= 0 && idx < 9) teleport(camera, idx);
+    if (idx >= 0 && idx < 9) doTeleport(idx);
   }
 
   // E — toggle door (use player position, not offset camera)
@@ -135,7 +144,7 @@ if (isMobile) {
     item.textContent = `${i + 1}. ${p.label}`;
     item.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      teleport(camera, i);
+      doTeleport(i);
       tpMenu.classList.add('hidden');
     }, { passive: false });
     tpMenu.appendChild(item);
